@@ -1,0 +1,20 @@
+export type CasoImportRow = {
+  ot: string;
+  rut: string | null;
+  nombreContacto: string | null;
+  subStatus: string | null;
+  fechaEnvioFiscalia: Date | null;
+  fechaPresentacion: Date | null;
+  anioPresentacion: string | null;
+  rol: string | null;
+  fechaResolucionTribunal: Date | null;
+  fechaNotificacionResolucionTribunal: Date | null;
+  resolucionTribunal: string | null;
+  numeroTribunal: string | null;
+  tribunal: string | null;
+  localidadComunaRegion: string | null;
+  propietarioCaso: string | null;
+  montoTotalReclamadoUf: number | null;
+  ultimaModificacionPor: string | null;
+  estadoAccionLegal: string | null;
+};

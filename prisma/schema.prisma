@@ -11,3 +11,25 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Caso {
+  ot                                   String    @id
+  rut                                  String?
+  nombreContacto                       String?
+  subStatus                            String?
+  fechaEnvioFiscalia                   DateTime?
+  fechaPresentacion                    DateTime?
+  anioPresentacion                     String?
+  rol                                  String?
+  fechaResolucionTribunal              DateTime?
+  fechaNotificacionResolucionTribunal  DateTime?
+  resolucionTribunal                   String?
+  numeroTribunal                       String?
+  tribunal                             String?
+  localidadComunaRegion                String?
+  propietarioCaso                      String?
+  montoTotalReclamadoUf                Decimal?  @db.Decimal
+  ultimaModificacionPor                String?
+  estadoAccionLegal                    String?
+  activo                               Boolean   @default(true)
+}
