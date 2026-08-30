@@ -102,8 +102,14 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
       where: { propietarioCaso: { not: null } },
       orderBy: { propietarioCaso: "asc" },
     }),
-    prisma.region.findMany({ orderBy: { nombre: "asc" } }),
-    prisma.comuna.findMany({ orderBy: { nombre: "asc" } }),
+    prisma.region.findMany({
+      where: { casos: { some: {} } },
+      orderBy: { nombre: "asc" },
+    }),
+    prisma.comuna.findMany({
+      where: { casos: { some: {} } },
+      orderBy: { nombre: "asc" },
+    }),
   ]);
 
   return {

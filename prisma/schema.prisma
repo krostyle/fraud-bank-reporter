@@ -42,6 +42,7 @@ model Caso {
 model Region {
   id      String   @id @default(cuid())
   nombre  String   @unique
+  aliases String[] @default([])
   comunas Comuna[]
   casos   Caso[]
 }

@@ -4,8 +4,7 @@ const findMany = vi.fn();
 const upsert = vi.fn();
 const updateMany = vi.fn();
 const count = vi.fn();
-const regionUpsert = vi.fn();
-const comunaUpsert = vi.fn();
+const regionFindMany = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -16,10 +15,7 @@ vi.mock("@/lib/prisma", () => ({
       count: (...args: unknown[]) => count(...args),
     },
     region: {
-      upsert: (...args: unknown[]) => regionUpsert(...args),
-    },
-    comuna: {
-      upsert: (...args: unknown[]) => comunaUpsert(...args),
+      findMany: (...args: unknown[]) => regionFindMany(...args),
     },
   },
 }));
@@ -35,23 +31,28 @@ const SAMPLE_CSV = [
   '"102812617","172762816","VICTOR ALFONSO TRIGO ARAYA","Anulado","07-07-2026, 14:15","","","","","","","","","QUINTA REGION,VINA DEL MAR,NUEVA AURORA","JAIRO GABRIEL BECERRA BRIONES","131,04160506","Eduvis Jimenez Mejias","Pendiente"',
 ].join("\n");
 
+const CATALOGO_PRUEBA = [
+  {
+    id: "region-rm",
+    nombre: "Metropolitana",
+    aliases: ["RM", "REGION METROPOLITANA"],
+    comunas: [{ id: "comuna-recoleta", nombre: "Recoleta" }],
+  },
+  {
+    id: "region-valpo",
+    nombre: "Valparaíso",
+    aliases: ["QUINTA REGION"],
+    comunas: [{ id: "comuna-vina", nombre: "Viña del Mar" }],
+  },
+];
+
 beforeEach(() => {
   findMany.mockReset();
   upsert.mockReset();
   updateMany.mockReset();
   count.mockReset();
-  regionUpsert.mockReset();
-  comunaUpsert.mockReset();
-  regionUpsert.mockImplementation(({ create }) =>
-    Promise.resolve({ id: `region-${create.nombre}`, nombre: create.nombre }),
-  );
-  comunaUpsert.mockImplementation(({ create }) =>
-    Promise.resolve({
-      id: `comuna-${create.nombre}`,
-      nombre: create.nombre,
-      regionId: create.regionId,
-    }),
-  );
+  regionFindMany.mockReset();
+  regionFindMany.mockResolvedValue(CATALOGO_PRUEBA);
 });
 
 describe("importCasosCsv", () => {
@@ -69,8 +70,8 @@ describe("importCasosCsv", () => {
           ot: "87837653",
           nombreContacto: "LUIS RICARDO FERNANDEZ PIMENTEL",
           montoTotalReclamadoUf: 54.11883737,
-          regionId: "region-REGION METROPOLITANA",
-          comunaId: "comuna-RECOLETA",
+          regionId: "region-rm",
+          comunaId: "comuna-recoleta",
           activo: true,
         }),
       }),
@@ -82,8 +83,8 @@ describe("importCasosCsv", () => {
           ot: "102812617",
           subStatus: "Anulado",
           fechaPresentacion: null,
-          regionId: "region-QUINTA REGION",
-          comunaId: "comuna-VINA DEL MAR",
+          regionId: "region-valpo",
+          comunaId: "comuna-vina",
           activo: true,
         }),
       }),
@@ -105,8 +106,6 @@ describe("previewCasosCsv", () => {
 
     expect(upsert).not.toHaveBeenCalled();
     expect(updateMany).not.toHaveBeenCalled();
-    expect(regionUpsert).not.toHaveBeenCalled();
-    expect(comunaUpsert).not.toHaveBeenCalled();
     expect(result).toEqual({ toCreate: 1, toUpdate: 1, toDeactivate: 3 });
   });
 });

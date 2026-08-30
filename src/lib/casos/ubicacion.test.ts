@@ -1,21 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { parseRegionComuna } from "./ubicacion";
-
-const regionUpsert = vi.fn();
-const comunaUpsert = vi.fn();
-
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    region: {
-      upsert: (...args: unknown[]) => regionUpsert(...args),
-    },
-    comuna: {
-      upsert: (...args: unknown[]) => comunaUpsert(...args),
-    },
-  },
-}));
-
-const { resolveUbicacion, resolveUbicacionesBatch } = await import("./ubicacion");
+import {
+  levenshteinDistance,
+  matchUbicacion,
+  normalizeUbicacionText,
+  parseRegionComuna,
+  similarityRatio,
+  type UbicacionCatalog,
+} from "./ubicacion";
 
 describe("parseRegionComuna", () => {
   it("separa región, comuna y descarta la localidad", () => {
@@ -57,80 +48,154 @@ describe("parseRegionComuna", () => {
   });
 });
 
-describe("resolveUbicacion", () => {
-  beforeEach(() => {
-    regionUpsert.mockReset();
-    comunaUpsert.mockReset();
+describe("normalizeUbicacionText", () => {
+  it("pasa a mayúsculas", () => {
+    expect(normalizeUbicacionText("recoleta")).toBe("RECOLETA");
   });
 
-  it("crea/reutiliza la región y la comuna, y devuelve sus ids", async () => {
-    regionUpsert.mockResolvedValue({ id: "region-1", nombre: "REGION METROPOLITANA" });
-    comunaUpsert.mockResolvedValue({ id: "comuna-1", nombre: "RECOLETA", regionId: "region-1" });
-
-    const result = await resolveUbicacion("REGION METROPOLITANA,RECOLETA,");
-
-    expect(regionUpsert).toHaveBeenCalledWith({
-      where: { nombre: "REGION METROPOLITANA" },
-      create: { nombre: "REGION METROPOLITANA" },
-      update: {},
-    });
-    expect(comunaUpsert).toHaveBeenCalledWith({
-      where: { regionId_nombre: { regionId: "region-1", nombre: "RECOLETA" } },
-      create: { nombre: "RECOLETA", regionId: "region-1" },
-      update: {},
-    });
-    expect(result).toEqual({ regionId: "region-1", comunaId: "comuna-1" });
+  it("saca tildes y la diéresis de la ñ", () => {
+    expect(normalizeUbicacionText("Ñuñoa")).toBe("NUNOA");
+    expect(normalizeUbicacionText("Valparaíso")).toBe("VALPARAISO");
   });
 
-  it("no toca la base y devuelve nulls si falta la región o la comuna", async () => {
-    const result = await resolveUbicacion("");
-
-    expect(regionUpsert).not.toHaveBeenCalled();
-    expect(comunaUpsert).not.toHaveBeenCalled();
-    expect(result).toEqual({ regionId: null, comunaId: null });
+  it("recorta y colapsa espacios de más", () => {
+    expect(normalizeUbicacionText("  Puente   Alto  ")).toBe("PUENTE ALTO");
   });
 });
 
+describe("levenshteinDistance", () => {
+  it("es 0 para strings iguales", () => {
+    expect(levenshteinDistance("RECOLETA", "RECOLETA")).toBe(0);
+  });
+
+  it("cuenta la cantidad mínima de ediciones", () => {
+    expect(levenshteinDistance("RECOLETA", "RECOLET")).toBe(1);
+    expect(levenshteinDistance("GATO", "PATO")).toBe(1);
+  });
+});
+
+describe("similarityRatio", () => {
+  it("es 1 para strings iguales", () => {
+    expect(similarityRatio("RECOLETA", "RECOLETA")).toBe(1);
+  });
+
+  it("baja a medida que las diferencias aumentan", () => {
+    expect(similarityRatio("RECOLETA", "RECOLET")).toBeGreaterThan(0.8);
+    expect(similarityRatio("RECOLETA", "XXXXXXXX")).toBeLessThan(0.2);
+  });
+});
+
+const CATALOGO_PRUEBA: UbicacionCatalog = [
+  {
+    id: "region-rm",
+    nombre: "Metropolitana",
+    aliases: ["RM", "REGION METROPOLITANA", "XIII REGION"],
+    comunas: [
+      { id: "comuna-recoleta", nombre: "Recoleta" },
+      { id: "comuna-nunoa", nombre: "Ñuñoa" },
+      { id: "comuna-puente-alto", nombre: "Puente Alto" },
+    ],
+  },
+  {
+    id: "region-valpo",
+    nombre: "Valparaíso",
+    aliases: ["V REGION", "QUINTA REGION", "REGION DE VALPARAISO"],
+    comunas: [
+      { id: "comuna-vina", nombre: "Viña del Mar" },
+      { id: "comuna-concon", nombre: "Concón" },
+    ],
+  },
+];
+
+describe("matchUbicacion", () => {
+  it("matchea región y comuna por coincidencia exacta (con mayúsculas/tildes distintas)", () => {
+    expect(
+      matchUbicacion("REGION METROPOLITANA,RECOLETA,", CATALOGO_PRUEBA),
+    ).toEqual({ regionId: "region-rm", comunaId: "comuna-recoleta" });
+  });
+
+  it("matchea la región por alias (RM, número romano, ordinal en palabras)", () => {
+    expect(matchUbicacion("RM,NUÑOA,", CATALOGO_PRUEBA)).toEqual({
+      regionId: "region-rm",
+      comunaId: "comuna-nunoa",
+    });
+    expect(
+      matchUbicacion("QUINTA REGION,VINA DEL MAR,NUEVA AURORA", CATALOGO_PRUEBA),
+    ).toEqual({ regionId: "region-valpo", comunaId: "comuna-vina" });
+  });
+
+  it("matchea comuna con mayúsculas/tildes distintas a las oficiales", () => {
+    expect(matchUbicacion("rm,ñuñoa,", CATALOGO_PRUEBA)).toEqual({
+      regionId: "region-rm",
+      comunaId: "comuna-nunoa",
+    });
+  });
+
+  it("matchea por similitud si hay un error de tipeo chico", () => {
+    expect(matchUbicacion("RM,RECOLET,", CATALOGO_PRUEBA)).toEqual({
+      regionId: "region-rm",
+      comunaId: "comuna-recoleta",
+    });
+  });
+
+  it("no matchea la comuna si pertenece a otra región (evita ambigüedad cruzada)", () => {
+    // "Concón" existe en el catálogo pero bajo Valparaíso, no bajo RM
+    expect(matchUbicacion("RM,CONCON,", CATALOGO_PRUEBA)).toEqual({
+      regionId: "region-rm",
+      comunaId: null,
+    });
+  });
+
+  it("no matchea nada si el texto no se parece a ninguna región real", () => {
+    expect(matchUbicacion("PLANETA MARTE,CRATER,", CATALOGO_PRUEBA)).toEqual({
+      regionId: null,
+      comunaId: null,
+    });
+  });
+
+  it("devuelve todo null si falta región o comuna en el texto crudo", () => {
+    expect(matchUbicacion("", CATALOGO_PRUEBA)).toEqual({
+      regionId: null,
+      comunaId: null,
+    });
+    expect(matchUbicacion(null, CATALOGO_PRUEBA)).toEqual({
+      regionId: null,
+      comunaId: null,
+    });
+  });
+});
+
+const findMany = vi.fn();
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    region: {
+      findMany: (...args: unknown[]) => findMany(...args),
+    },
+  },
+}));
+
+const { resolveUbicacionesBatch } = await import("./ubicacion");
+
 describe("resolveUbicacionesBatch", () => {
   beforeEach(() => {
-    regionUpsert.mockReset();
-    comunaUpsert.mockReset();
+    findMany.mockReset();
   });
 
-  it("resuelve cada valor único una sola vez, aunque se repita en la lista", async () => {
-    regionUpsert.mockResolvedValue({ id: "region-1", nombre: "REGION METROPOLITANA" });
-    comunaUpsert.mockResolvedValue({ id: "comuna-1", nombre: "RECOLETA", regionId: "region-1" });
-
-    const raw = "REGION METROPOLITANA,RECOLETA,";
-    const map = await resolveUbicacionesBatch([raw, raw, raw]);
-
-    expect(regionUpsert).toHaveBeenCalledTimes(1);
-    expect(comunaUpsert).toHaveBeenCalledTimes(1);
-    expect(map.get(raw)).toEqual({ regionId: "region-1", comunaId: "comuna-1" });
-  });
-
-  it("resuelve varios valores distintos y arma un mapa con todos", async () => {
-    regionUpsert.mockImplementation(({ create }) =>
-      Promise.resolve({ id: `region-${create.nombre}`, nombre: create.nombre }),
-    );
-    comunaUpsert.mockImplementation(({ create }) =>
-      Promise.resolve({ id: `comuna-${create.nombre}`, nombre: create.nombre, regionId: create.regionId }),
-    );
-
-    const map = await resolveUbicacionesBatch([
-      "REGION METROPOLITANA,RECOLETA,",
-      "QUINTA REGION,VINA DEL MAR,NUEVA AURORA",
-      null,
+  it("carga el catálogo una sola vez y resuelve cada valor único", async () => {
+    findMany.mockResolvedValue([
+      {
+        id: "region-rm",
+        nombre: "Metropolitana",
+        aliases: ["RM"],
+        comunas: [{ id: "comuna-recoleta", nombre: "Recoleta" }],
+      },
     ]);
 
-    expect(map.get("REGION METROPOLITANA,RECOLETA,")).toEqual({
-      regionId: "region-REGION METROPOLITANA",
-      comunaId: "comuna-RECOLETA",
-    });
-    expect(map.get("QUINTA REGION,VINA DEL MAR,NUEVA AURORA")).toEqual({
-      regionId: "region-QUINTA REGION",
-      comunaId: "comuna-VINA DEL MAR",
-    });
-    expect(map.has(null as unknown as string)).toBe(false);
+    const raw = "RM,RECOLETA,";
+    const map = await resolveUbicacionesBatch([raw, raw, null]);
+
+    expect(findMany).toHaveBeenCalledTimes(1);
+    expect(map.get(raw)).toEqual({ regionId: "region-rm", comunaId: "comuna-recoleta" });
   });
 });
