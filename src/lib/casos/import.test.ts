@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const findMany = vi.fn();
 const upsert = vi.fn();
 const updateMany = vi.fn();
+const regionUpsert = vi.fn();
+const comunaUpsert = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -10,6 +12,12 @@ vi.mock("@/lib/prisma", () => ({
       findMany: (...args: unknown[]) => findMany(...args),
       upsert: (...args: unknown[]) => upsert(...args),
       updateMany: (...args: unknown[]) => updateMany(...args),
+    },
+    region: {
+      upsert: (...args: unknown[]) => regionUpsert(...args),
+    },
+    comuna: {
+      upsert: (...args: unknown[]) => comunaUpsert(...args),
     },
   },
 }));
@@ -29,6 +37,18 @@ beforeEach(() => {
   findMany.mockReset();
   upsert.mockReset();
   updateMany.mockReset();
+  regionUpsert.mockReset();
+  comunaUpsert.mockReset();
+  regionUpsert.mockImplementation(({ create }) =>
+    Promise.resolve({ id: `region-${create.nombre}`, nombre: create.nombre }),
+  );
+  comunaUpsert.mockImplementation(({ create }) =>
+    Promise.resolve({
+      id: `comuna-${create.nombre}`,
+      nombre: create.nombre,
+      regionId: create.regionId,
+    }),
+  );
 });
 
 describe("importCasosCsv", () => {
@@ -46,6 +66,8 @@ describe("importCasosCsv", () => {
           ot: "87837653",
           nombreContacto: "LUIS RICARDO FERNANDEZ PIMENTEL",
           montoTotalReclamadoUf: 54.11883737,
+          regionId: "region-REGION METROPOLITANA",
+          comunaId: "comuna-RECOLETA",
           activo: true,
         }),
       }),
@@ -57,6 +79,8 @@ describe("importCasosCsv", () => {
           ot: "102812617",
           subStatus: "Anulado",
           fechaPresentacion: null,
+          regionId: "region-QUINTA REGION",
+          comunaId: "comuna-VINA DEL MAR",
           activo: true,
         }),
       }),

@@ -4,6 +4,7 @@ import type { CasoImportRow } from "./types";
 const findMany = vi.fn();
 const upsert = vi.fn();
 const updateMany = vi.fn();
+const resolveUbicacion = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -13,6 +14,10 @@ vi.mock("@/lib/prisma", () => ({
       updateMany: (...args: unknown[]) => updateMany(...args),
     },
   },
+}));
+
+vi.mock("./ubicacion", () => ({
+  resolveUbicacion: (...args: unknown[]) => resolveUbicacion(...args),
 }));
 
 const { syncCasos } = await import("./sync");
@@ -44,7 +49,9 @@ beforeEach(() => {
   findMany.mockReset();
   upsert.mockReset();
   updateMany.mockReset();
+  resolveUbicacion.mockReset();
   updateMany.mockResolvedValue({ count: 0 });
+  resolveUbicacion.mockResolvedValue({ regionId: null, comunaId: null });
 });
 
 describe("syncCasos", () => {
@@ -91,5 +98,30 @@ describe("syncCasos", () => {
       data: { activo: false },
     });
     expect(result).toEqual({ created: 0, updated: 0, deactivated: 5 });
+  });
+
+  it("incluye el regionId/comunaId que resuelve resolveUbicacion en el upsert", async () => {
+    findMany.mockResolvedValue([]);
+    resolveUbicacion.mockResolvedValue({
+      regionId: "region-1",
+      comunaId: "comuna-1",
+    });
+
+    const row = { ...makeRow("111"), localidadComunaRegion: "REGION METROPOLITANA,RECOLETA," };
+    await syncCasos([row]);
+
+    expect(resolveUbicacion).toHaveBeenCalledWith(row.localidadComunaRegion);
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          regionId: "region-1",
+          comunaId: "comuna-1",
+        }),
+        update: expect.objectContaining({
+          regionId: "region-1",
+          comunaId: "comuna-1",
+        }),
+      }),
+    );
   });
 });

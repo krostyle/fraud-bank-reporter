@@ -6,7 +6,8 @@ const PAGE_SIZE = 25;
 export type CasosDashboardFilters = {
   q?: string;
   estado?: string;
-  ubicacion?: string;
+  regionId?: string;
+  comunaId?: string;
   activo?: "activos" | "inactivos" | "todos";
   page?: number;
 };
@@ -34,11 +35,12 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
     where.estadoAccionLegal = filters.estado;
   }
 
-  if (filters.ubicacion) {
-    where.localidadComunaRegion = {
-      contains: filters.ubicacion,
-      mode: "insensitive",
-    };
+  if (filters.regionId) {
+    where.regionId = filters.regionId;
+  }
+
+  if (filters.comunaId) {
+    where.comunaId = filters.comunaId;
   }
 
   const [
@@ -49,6 +51,8 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
     montoAgg,
     porEstado,
     estadosRows,
+    regionesDisponibles,
+    comunasDisponibles,
   ] = await Promise.all([
     prisma.caso.findMany({
       where,
@@ -74,6 +78,8 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
       where: { estadoAccionLegal: { not: null } },
       orderBy: { estadoAccionLegal: "asc" },
     }),
+    prisma.region.findMany({ orderBy: { nombre: "asc" } }),
+    prisma.comuna.findMany({ orderBy: { nombre: "asc" } }),
   ]);
 
   return {
@@ -82,6 +88,8 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
     pageSize: PAGE_SIZE,
     totalPages: Math.max(1, Math.ceil(totalCount / PAGE_SIZE)),
     estadosDisponibles: estadosRows.map((row) => row.estadoAccionLegal as string),
+    regionesDisponibles,
+    comunasDisponibles,
     kpis: {
       activos,
       inactivos,

@@ -32,4 +32,26 @@ model Caso {
   ultimaModificacionPor                String?
   estadoAccionLegal                    String?
   activo                               Boolean   @default(true)
+
+  regionId                             String?
+  region                               Region?   @relation(fields: [regionId], references: [id])
+  comunaId                             String?
+  comuna                               Comuna?   @relation(fields: [comunaId], references: [id])
+}
+
+model Region {
+  id      String   @id @default(cuid())
+  nombre  String   @unique
+  comunas Comuna[]
+  casos   Caso[]
+}
+
+model Comuna {
+  id       String @id @default(cuid())
+  nombre   String
+  regionId String
+  region   Region @relation(fields: [regionId], references: [id])
+  casos    Caso[]
+
+  @@unique([regionId, nombre])
 }

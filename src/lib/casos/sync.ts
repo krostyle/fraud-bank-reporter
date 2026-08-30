@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { resolveUbicacion } from "./ubicacion";
 import type { CasoImportRow } from "./types";
 
 export async function syncCasos(rows: CasoImportRow[]) {
@@ -11,10 +12,14 @@ export async function syncCasos(rows: CasoImportRow[]) {
   const existingOts = new Set(existing.map((caso) => caso.ot));
 
   for (const { ot, ...fields } of rows) {
+    const { regionId, comunaId } = await resolveUbicacion(
+      fields.localidadComunaRegion,
+    );
+
     await prisma.caso.upsert({
       where: { ot },
-      create: { ot, ...fields, activo: true },
-      update: { ...fields, activo: true },
+      create: { ot, ...fields, regionId, comunaId, activo: true },
+      update: { ...fields, regionId, comunaId, activo: true },
     });
   }
 

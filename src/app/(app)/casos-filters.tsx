@@ -21,17 +21,32 @@ const MOSTRAR_LABELS: Record<string, string> = {
   todos: "Todos",
 };
 
+const TODAS_LAS_REGIONES = "__todas__";
+const TODAS_LAS_COMUNAS = "__todas__";
+
+type Region = { id: string; nombre: string };
+type Comuna = { id: string; nombre: string; regionId: string };
+
 export function CasosFilters({
   estadosDisponibles,
+  regionesDisponibles,
+  comunasDisponibles,
 }: {
   estadosDisponibles: string[];
+  regionesDisponibles: Region[];
+  comunasDisponibles: Comuna[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const [q, setQ] = useState(searchParams.get("q") ?? "");
-  const [ubicacion, setUbicacion] = useState(searchParams.get("ubicacion") ?? "");
+
+  const regionId = searchParams.get("regionId") ?? TODAS_LAS_REGIONES;
+  const comunasFiltradas =
+    regionId === TODAS_LAS_REGIONES
+      ? comunasDisponibles
+      : comunasDisponibles.filter((comuna) => comuna.regionId === regionId);
 
   function navigate(overrides: Record<string, string | undefined>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -45,7 +60,7 @@ export function CasosFilters({
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    navigate({ q, ubicacion });
+    navigate({ q });
   }
 
   return (
@@ -62,14 +77,62 @@ export function CasosFilters({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="ubicacion">Región / Comuna</Label>
-        <Input
-          id="ubicacion"
-          placeholder="Ej. Recoleta"
-          value={ubicacion}
-          onChange={(event) => setUbicacion(event.target.value)}
-          className="w-48"
-        />
+        <Label>Región</Label>
+        <Select
+          value={regionId}
+          onValueChange={(value) =>
+            navigate({
+              regionId: value === TODAS_LAS_REGIONES ? undefined : String(value),
+              comunaId: undefined,
+            })
+          }
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue>
+              {(value: string) =>
+                value === TODAS_LAS_REGIONES
+                  ? "Todas"
+                  : (regionesDisponibles.find((r) => r.id === value)?.nombre ?? value)
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={TODAS_LAS_REGIONES}>Todas</SelectItem>
+            {regionesDisponibles.map((region) => (
+              <SelectItem key={region.id} value={region.id}>
+                {region.nombre}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label>Comuna</Label>
+        <Select
+          value={searchParams.get("comunaId") ?? TODAS_LAS_COMUNAS}
+          onValueChange={(value) =>
+            navigate({ comunaId: value === TODAS_LAS_COMUNAS ? undefined : String(value) })
+          }
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue>
+              {(value: string) =>
+                value === TODAS_LAS_COMUNAS
+                  ? "Todas"
+                  : (comunasDisponibles.find((c) => c.id === value)?.nombre ?? value)
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={TODAS_LAS_COMUNAS}>Todas</SelectItem>
+            {comunasFiltradas.map((comuna) => (
+              <SelectItem key={comuna.id} value={comuna.id}>
+                {comuna.nombre}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-1.5">
