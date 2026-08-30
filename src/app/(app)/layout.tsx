@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
+import { ImportDialog } from "@/components/import-dialog";
 
 export default async function AppLayout({
   children,
@@ -13,13 +13,11 @@ export default async function AppLayout({
         <span className="font-semibold tracking-tight">
           Sistema de Gestión de Fraudes
         </span>
-        <div className="flex items-center gap-4">
-          <Link href="/importar" className="text-sm font-medium hover:underline">
-            Importar
-          </Link>
-          <UserButton />
-        </div>
+        <UserButton />
       </header>
+      <div className="flex justify-end border-b bg-muted/30 px-6 py-2">
+        <ImportDialog />
+      </div>
       <main className="flex flex-1 flex-col">{children}</main>
     </div>
   );
