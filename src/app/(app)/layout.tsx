@@ -2,6 +2,11 @@ import { UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { ImportDialog } from "@/components/import-dialog";
 
+// La importación de CSV puede tardar bastante con archivos grandes
+// (varias filas -> varios round-trips a la base); sube el límite de
+// ejecución de la función más allá del default para evitar 504.
+export const maxDuration = 60;
+
 export default async function AppLayout({
   children,
 }: LayoutProps<"/">) {

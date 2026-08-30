@@ -5,7 +5,7 @@ const findMany = vi.fn();
 const upsert = vi.fn();
 const updateMany = vi.fn();
 const count = vi.fn();
-const resolveUbicacion = vi.fn();
+const resolveUbicacionesBatch = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -19,7 +19,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 vi.mock("./ubicacion", () => ({
-  resolveUbicacion: (...args: unknown[]) => resolveUbicacion(...args),
+  resolveUbicacionesBatch: (...args: unknown[]) => resolveUbicacionesBatch(...args),
 }));
 
 const { syncCasos, previewSyncCasos } = await import("./sync");
@@ -52,9 +52,9 @@ beforeEach(() => {
   upsert.mockReset();
   updateMany.mockReset();
   count.mockReset();
-  resolveUbicacion.mockReset();
+  resolveUbicacionesBatch.mockReset();
   updateMany.mockResolvedValue({ count: 0 });
-  resolveUbicacion.mockResolvedValue({ regionId: null, comunaId: null });
+  resolveUbicacionesBatch.mockResolvedValue(new Map());
 });
 
 describe("syncCasos", () => {
@@ -103,27 +103,31 @@ describe("syncCasos", () => {
     expect(result).toEqual({ created: 0, updated: 0, deactivated: 5 });
   });
 
-  it("incluye el regionId/comunaId que resuelve resolveUbicacion en el upsert", async () => {
+  it("resuelve región/comuna una sola vez para todas las filas, no por fila, e incluye los ids en el upsert", async () => {
     findMany.mockResolvedValue([]);
-    resolveUbicacion.mockResolvedValue({
-      regionId: "region-1",
-      comunaId: "comuna-1",
-    });
+    const raw = "REGION METROPOLITANA,RECOLETA,";
+    resolveUbicacionesBatch.mockResolvedValue(
+      new Map([[raw, { regionId: "region-1", comunaId: "comuna-1" }]]),
+    );
 
-    const row = { ...makeRow("111"), localidadComunaRegion: "REGION METROPOLITANA,RECOLETA," };
-    await syncCasos([row]);
+    const rows = [
+      { ...makeRow("111"), localidadComunaRegion: raw },
+      { ...makeRow("222"), localidadComunaRegion: raw },
+    ];
+    await syncCasos(rows);
 
-    expect(resolveUbicacion).toHaveBeenCalledWith(row.localidadComunaRegion);
+    expect(resolveUbicacionesBatch).toHaveBeenCalledTimes(1);
+    expect(resolveUbicacionesBatch).toHaveBeenCalledWith([raw, raw]);
     expect(upsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        create: expect.objectContaining({
-          regionId: "region-1",
-          comunaId: "comuna-1",
-        }),
-        update: expect.objectContaining({
-          regionId: "region-1",
-          comunaId: "comuna-1",
-        }),
+        where: { ot: "111" },
+        create: expect.objectContaining({ regionId: "region-1", comunaId: "comuna-1" }),
+      }),
+    );
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { ot: "222" },
+        create: expect.objectContaining({ regionId: "region-1", comunaId: "comuna-1" }),
       }),
     );
   });

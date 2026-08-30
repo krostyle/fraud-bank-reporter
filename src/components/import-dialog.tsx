@@ -147,6 +147,12 @@ export function ImportDialog() {
                   ? "Leyendo archivo…"
                   : "Confirmando importación…"}
               </p>
+              {state.step === "confirming" && (
+                <p className="text-xs text-muted-foreground">
+                  Con archivos grandes puede tardar varios minutos. No cierres
+                  esta ventana.
+                </p>
+              )}
               <div
                 role="progressbar"
                 aria-label={

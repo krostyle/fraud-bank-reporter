@@ -36,3 +36,20 @@ export async function resolveUbicacion(
 
   return { regionId: regionRow.id, comunaId: comunaRow.id };
 }
+
+const RESOLVE_BATCH_SIZE = 10;
+
+export async function resolveUbicacionesBatch(
+  rawValues: Array<string | null>,
+): Promise<Map<string, { regionId: string | null; comunaId: string | null }>> {
+  const unique = [...new Set(rawValues.filter((raw): raw is string => !!raw))];
+  const map = new Map<string, { regionId: string | null; comunaId: string | null }>();
+
+  for (let i = 0; i < unique.length; i += RESOLVE_BATCH_SIZE) {
+    const batch = unique.slice(i, i + RESOLVE_BATCH_SIZE);
+    const resolved = await Promise.all(batch.map((raw) => resolveUbicacion(raw)));
+    batch.forEach((raw, index) => map.set(raw, resolved[index]));
+  }
+
+  return map;
+}
