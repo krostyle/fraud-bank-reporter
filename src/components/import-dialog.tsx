@@ -59,7 +59,7 @@ export function ImportDialog() {
 
     try {
       const blob = await upload(file.name, file, {
-        access: "public",
+        access: "private",
         handleUploadUrl: "/api/upload",
       });
 
