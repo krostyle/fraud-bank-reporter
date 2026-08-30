@@ -30,7 +30,9 @@ Esta feature cubre:
 2. **Filtros y búsqueda**, combinables entre sí:
    - Búsqueda de texto libre que matchea por OT, RUT o Nombre del contacto.
    - Filtro por `Estado Acción Legal` (select).
-   - Filtro por Región/Comuna: búsqueda de texto libre sobre el campo combinado `localidadComunaRegion`.
+   - Filtro por `Sub Status` (select).
+   - Filtro por `Propietario del caso` (select).
+   - Filtro por Región y por Comuna (selects dependientes — ver spec 004, reemplazó la búsqueda de texto libre original sobre el campo combinado).
    - Filtro por estado `activo`/`inactivo` (por defecto: solo activos).
 3. **Tabla paginada** con los Casos que matchean los filtros, columnas: OT, Nombre del contacto, RUT, Sub Status, Propietario del caso, Estado Acción Legal, Monto Total Reclamado UF, Activo (badge visual).
    - Paginación simple (anterior/siguiente), 25 filas por página.
@@ -41,8 +43,8 @@ Esta feature cubre:
 - [ ] El título de la pestaña y el header muestran "Sistema de Gestión de Fraudes", no "Bank Fraud Reporter".
 - [ ] Los KPIs reflejan correctamente los datos reales de la tabla `Caso` (totales y desglose por estado).
 - [ ] Buscar por OT, RUT o nombre filtra la tabla correctamente (coincidencia parcial, no sensible a mayúsculas/minúsculas).
-- [ ] Filtrar por Estado Acción Legal muestra solo los Casos con ese estado.
-- [ ] Filtrar por región/comuna (texto libre) muestra solo los Casos cuyo campo combinado contiene ese texto.
+- [ ] Filtrar por Estado Acción Legal, Sub Status, o Propietario muestra solo los Casos que coinciden exactamente con el valor elegido.
+- [ ] Filtrar por Región y/o Comuna muestra solo los Casos vinculados a esa Región/Comuna (spec 004).
 - [ ] Por defecto la tabla muestra solo Casos activos; el filtro permite ver también los inactivos.
 - [ ] La tabla pagina correctamente cuando hay más de 25 resultados.
 - [ ] `npm run build` y `npm run lint` pasan sin errores (no aplica TDD, es UI/dashboard).

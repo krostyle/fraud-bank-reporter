@@ -6,6 +6,8 @@ const PAGE_SIZE = 25;
 export type CasosDashboardFilters = {
   q?: string;
   estado?: string;
+  subStatus?: string;
+  propietario?: string;
   regionId?: string;
   comunaId?: string;
   activo?: "activos" | "inactivos" | "todos";
@@ -35,6 +37,14 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
     where.estadoAccionLegal = filters.estado;
   }
 
+  if (filters.subStatus) {
+    where.subStatus = filters.subStatus;
+  }
+
+  if (filters.propietario) {
+    where.propietarioCaso = filters.propietario;
+  }
+
   if (filters.regionId) {
     where.regionId = filters.regionId;
   }
@@ -51,6 +61,8 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
     montoAgg,
     porEstado,
     estadosRows,
+    subStatusesRows,
+    propietariosRows,
     regionesDisponibles,
     comunasDisponibles,
   ] = await Promise.all([
@@ -78,6 +90,18 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
       where: { estadoAccionLegal: { not: null } },
       orderBy: { estadoAccionLegal: "asc" },
     }),
+    prisma.caso.findMany({
+      distinct: ["subStatus"],
+      select: { subStatus: true },
+      where: { subStatus: { not: null } },
+      orderBy: { subStatus: "asc" },
+    }),
+    prisma.caso.findMany({
+      distinct: ["propietarioCaso"],
+      select: { propietarioCaso: true },
+      where: { propietarioCaso: { not: null } },
+      orderBy: { propietarioCaso: "asc" },
+    }),
     prisma.region.findMany({ orderBy: { nombre: "asc" } }),
     prisma.comuna.findMany({ orderBy: { nombre: "asc" } }),
   ]);
@@ -88,6 +112,8 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
     pageSize: PAGE_SIZE,
     totalPages: Math.max(1, Math.ceil(totalCount / PAGE_SIZE)),
     estadosDisponibles: estadosRows.map((row) => row.estadoAccionLegal as string),
+    subStatusesDisponibles: subStatusesRows.map((row) => row.subStatus as string),
+    propietariosDisponibles: propietariosRows.map((row) => row.propietarioCaso as string),
     regionesDisponibles,
     comunasDisponibles,
     kpis: {

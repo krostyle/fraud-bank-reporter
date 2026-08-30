@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const TODOS_LOS_ESTADOS = "__todos__";
+const TODOS = "__todos__";
 
 const MOSTRAR_LABELS: Record<string, string> = {
   activos: "Activos",
@@ -27,12 +27,56 @@ const TODAS_LAS_COMUNAS = "__todas__";
 type Region = { id: string; nombre: string };
 type Comuna = { id: string; nombre: string; regionId: string };
 
+function StringFilterSelect({
+  label,
+  paramKey,
+  options,
+  value,
+  navigate,
+  className = "w-44",
+}: {
+  label: string;
+  paramKey: string;
+  options: string[];
+  value: string;
+  navigate: (overrides: Record<string, string | undefined>) => void;
+  className?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label>{label}</Label>
+      <Select
+        value={value}
+        onValueChange={(v) =>
+          navigate({ [paramKey]: v === TODOS ? undefined : String(v) })
+        }
+      >
+        <SelectTrigger className={className}>
+          <SelectValue>{(v: string) => (v === TODOS ? "Todos" : v)}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={TODOS}>Todos</SelectItem>
+          {options.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 export function CasosFilters({
   estadosDisponibles,
+  subStatusesDisponibles,
+  propietariosDisponibles,
   regionesDisponibles,
   comunasDisponibles,
 }: {
   estadosDisponibles: string[];
+  subStatusesDisponibles: string[];
+  propietariosDisponibles: string[];
   regionesDisponibles: Region[];
   comunasDisponibles: Comuna[];
 }) {
@@ -135,29 +179,30 @@ export function CasosFilters({
         </Select>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label>Estado</Label>
-        <Select
-          value={searchParams.get("estado") ?? TODOS_LOS_ESTADOS}
-          onValueChange={(value) =>
-            navigate({ estado: value === TODOS_LOS_ESTADOS ? undefined : String(value) })
-          }
-        >
-          <SelectTrigger className="w-44">
-            <SelectValue>
-              {(value: string) => (value === TODOS_LOS_ESTADOS ? "Todos" : value)}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={TODOS_LOS_ESTADOS}>Todos</SelectItem>
-            {estadosDisponibles.map((estado) => (
-              <SelectItem key={estado} value={estado}>
-                {estado}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <StringFilterSelect
+        label="Estado"
+        paramKey="estado"
+        options={estadosDisponibles}
+        value={searchParams.get("estado") ?? TODOS}
+        navigate={navigate}
+      />
+
+      <StringFilterSelect
+        label="Sub Status"
+        paramKey="subStatus"
+        options={subStatusesDisponibles}
+        value={searchParams.get("subStatus") ?? TODOS}
+        navigate={navigate}
+      />
+
+      <StringFilterSelect
+        label="Propietario"
+        paramKey="propietario"
+        options={propietariosDisponibles}
+        value={searchParams.get("propietario") ?? TODOS}
+        navigate={navigate}
+        className="w-56"
+      />
 
       <div className="flex flex-col gap-1.5">
         <Label>Mostrar</Label>

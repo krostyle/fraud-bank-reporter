@@ -42,6 +42,8 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   const dashboard = await getCasosDashboard({
     q: unwrap(params.q),
     estado: unwrap(params.estado),
+    subStatus: unwrap(params.subStatus),
+    propietario: unwrap(params.propietario),
     regionId: unwrap(params.regionId),
     comunaId: unwrap(params.comunaId),
     activo,
@@ -110,6 +112,8 @@ export default async function Home({ searchParams }: PageProps<"/">) {
 
       <CasosFilters
         estadosDisponibles={dashboard.estadosDisponibles}
+        subStatusesDisponibles={dashboard.subStatusesDisponibles}
+        propietariosDisponibles={dashboard.propietariosDisponibles}
         regionesDisponibles={dashboard.regionesDisponibles}
         comunasDisponibles={dashboard.comunasDisponibles}
       />
