@@ -8,8 +8,10 @@ export default async function AppLayout({
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="flex items-center justify-between border-b px-6 py-3">
-        <span className="font-semibold">Causa</span>
+      <header className="flex items-center justify-between bg-primary px-6 py-3 text-primary-foreground">
+        <span className="font-semibold tracking-tight">
+          Sistema de Gestión de Fraudes
+        </span>
         <UserButton />
       </header>
       <main className="flex flex-1 flex-col">{children}</main>

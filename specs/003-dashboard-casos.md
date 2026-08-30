@@ -4,7 +4,7 @@
 
 Esta feature cubre:
 
-1. Rebranding de la UI: la app deja de mostrar "Bank Fraud Reporter" y pasa a usar **"Causa"** como marca (header y título de pestaña).
+1. Rebranding de la UI: la app deja de mostrar "Bank Fraud Reporter" y pasa a usar **"Sistema de Gestión de Fraudes"** como marca (header y título de pestaña).
 2. La página principal (`/`, dentro del layout protegido) deja de ser un placeholder y pasa a ser el dashboard de Casos: KPIs de resumen, filtros/búsqueda, y una tabla paginada.
 
 **Fuera de alcance** (specs futuros):
@@ -17,7 +17,7 @@ Esta feature cubre:
 
 ### Branding
 
-- Título de pestaña (`metadata.title` en `src/app/layout.tsx`) y el nombre en el header (`src/app/(app)/layout.tsx`) pasan a ser **"Causa"**.
+- Título de pestaña (`metadata.title` en `src/app/layout.tsx`) y el nombre en el header (`src/app/(app)/layout.tsx`) pasan a ser **"Sistema de Gestión de Fraudes"**.
 - No debe quedar ningún texto visible en la UI con "Bank Fraud Reporter" (el nombre del repo/paquete interno no cambia, solo lo que ve el usuario).
 
 ### Dashboard (página principal)
@@ -38,7 +38,7 @@ Esta feature cubre:
 
 ## Criterios de aceptación
 
-- [ ] El título de la pestaña y el header muestran "Causa", no "Bank Fraud Reporter".
+- [ ] El título de la pestaña y el header muestran "Sistema de Gestión de Fraudes", no "Bank Fraud Reporter".
 - [ ] Los KPIs reflejan correctamente los datos reales de la tabla `Caso` (totales y desglose por estado).
 - [ ] Buscar por OT, RUT o nombre filtra la tabla correctamente (coincidencia parcial, no sensible a mayúsculas/minúsculas).
 - [ ] Filtrar por Estado Acción Legal muestra solo los Casos con ese estado.

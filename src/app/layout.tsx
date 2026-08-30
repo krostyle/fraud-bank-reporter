@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Causa",
+  title: "Sistema de Gestión de Fraudes",
   description: "Gestión de casos judiciales",
 };
 
