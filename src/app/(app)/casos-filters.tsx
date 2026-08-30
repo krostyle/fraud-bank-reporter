@@ -15,6 +15,12 @@ import {
 
 const TODOS_LOS_ESTADOS = "__todos__";
 
+const MOSTRAR_LABELS: Record<string, string> = {
+  activos: "Activos",
+  inactivos: "Inactivos",
+  todos: "Todos",
+};
+
 export function CasosFilters({
   estadosDisponibles,
 }: {
@@ -75,7 +81,9 @@ export function CasosFilters({
           }
         >
           <SelectTrigger className="w-44">
-            <SelectValue />
+            <SelectValue>
+              {(value: string) => (value === TODOS_LOS_ESTADOS ? "Todos" : value)}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={TODOS_LOS_ESTADOS}>Todos</SelectItem>
@@ -95,7 +103,9 @@ export function CasosFilters({
           onValueChange={(value) => navigate({ activo: String(value) })}
         >
           <SelectTrigger className="w-36">
-            <SelectValue />
+            <SelectValue>
+              {(value: string) => MOSTRAR_LABELS[value] ?? value}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="activos">Activos</SelectItem>
