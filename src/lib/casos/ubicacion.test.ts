@@ -146,6 +146,15 @@ describe("matchUbicacion", () => {
     });
   });
 
+  it("si el campo de región es en realidad el nombre de una comuna real, infiere la región correspondiente", () => {
+    // Anomalía real vista en producción: la fuente pone el nombre de una
+    // comuna (ej. "Talcahuano") también en el campo de región.
+    expect(matchUbicacion("Puente Alto,Puente Alto,", CATALOGO_PRUEBA)).toEqual({
+      regionId: "region-rm",
+      comunaId: "comuna-puente-alto",
+    });
+  });
+
   it("no matchea nada si el texto no se parece a ninguna región real", () => {
     expect(matchUbicacion("PLANETA MARTE,CRATER,", CATALOGO_PRUEBA)).toEqual({
       regionId: null,

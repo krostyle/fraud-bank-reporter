@@ -88,7 +88,18 @@ export function matchUbicacion(
       normalized: normalizeUbicacionText(nombre),
     })),
   );
-  const regionId = findBestMatch(normalizeUbicacionText(region), regionCandidates);
+  let regionId = findBestMatch(normalizeUbicacionText(region), regionCandidates);
+
+  if (!regionId) {
+    // A veces la fuente pone el nombre de una comuna real en el campo de
+    // región (ej. "Talcahuano,Talcahuano,"). Si el texto no matchea ninguna
+    // región, probamos si en realidad es una comuna e inferimos su región.
+    const comunaAsRegionCandidates = catalog.flatMap((r) =>
+      r.comunas.map((c) => ({ id: r.id, normalized: normalizeUbicacionText(c.nombre) })),
+    );
+    regionId = findBestMatch(normalizeUbicacionText(region), comunaAsRegionCandidates);
+  }
+
   if (!regionId) return { regionId: null, comunaId: null };
 
   const matchedRegion = catalog.find((r) => r.id === regionId);
