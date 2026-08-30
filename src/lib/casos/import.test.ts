@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const findMany = vi.fn();
 const upsert = vi.fn();
 const updateMany = vi.fn();
+const count = vi.fn();
 const regionUpsert = vi.fn();
 const comunaUpsert = vi.fn();
 
@@ -12,6 +13,7 @@ vi.mock("@/lib/prisma", () => ({
       findMany: (...args: unknown[]) => findMany(...args),
       upsert: (...args: unknown[]) => upsert(...args),
       updateMany: (...args: unknown[]) => updateMany(...args),
+      count: (...args: unknown[]) => count(...args),
     },
     region: {
       upsert: (...args: unknown[]) => regionUpsert(...args),
@@ -22,7 +24,7 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-const { importCasosCsv } = await import("./import");
+const { importCasosCsv, previewCasosCsv } = await import("./import");
 
 const HEADER =
   '"Caso: Número del caso","Caso: RUT (Cliente)","Caso: Nombre del contacto","Caso: Sub Status","Caso: Fecha Envío Fiscalía","Fecha Presentación","Año Presentación","Rol","Fecha Resolución del Tribunal","Fecha Notificación Resolución Tribunal","Resolución del Tribunal","Número del Tribunal","Tribunal","Caso: Localidad / Comuna / Región","Caso: Propietario del caso","Caso: Monto Total Reclamado UF","Acción Legal: Última modificación por","Estado Acción Legal"';
@@ -37,6 +39,7 @@ beforeEach(() => {
   findMany.mockReset();
   upsert.mockReset();
   updateMany.mockReset();
+  count.mockReset();
   regionUpsert.mockReset();
   comunaUpsert.mockReset();
   regionUpsert.mockImplementation(({ create }) =>
@@ -90,5 +93,20 @@ describe("importCasosCsv", () => {
       data: { activo: false },
     });
     expect(result).toEqual({ created: 2, updated: 0, deactivated: 0 });
+  });
+});
+
+describe("previewCasosCsv", () => {
+  it("calcula el resultado esperado sin escribir en la base", async () => {
+    findMany.mockResolvedValue([{ ot: "87837653" }]);
+    count.mockResolvedValue(3);
+
+    const result = await previewCasosCsv(SAMPLE_CSV);
+
+    expect(upsert).not.toHaveBeenCalled();
+    expect(updateMany).not.toHaveBeenCalled();
+    expect(regionUpsert).not.toHaveBeenCalled();
+    expect(comunaUpsert).not.toHaveBeenCalled();
+    expect(result).toEqual({ toCreate: 1, toUpdate: 1, toDeactivate: 3 });
   });
 });

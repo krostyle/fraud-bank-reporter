@@ -4,6 +4,7 @@ import type { CasoImportRow } from "./types";
 const findMany = vi.fn();
 const upsert = vi.fn();
 const updateMany = vi.fn();
+const count = vi.fn();
 const resolveUbicacion = vi.fn();
 
 vi.mock("@/lib/prisma", () => ({
@@ -12,6 +13,7 @@ vi.mock("@/lib/prisma", () => ({
       findMany: (...args: unknown[]) => findMany(...args),
       upsert: (...args: unknown[]) => upsert(...args),
       updateMany: (...args: unknown[]) => updateMany(...args),
+      count: (...args: unknown[]) => count(...args),
     },
   },
 }));
@@ -20,7 +22,7 @@ vi.mock("./ubicacion", () => ({
   resolveUbicacion: (...args: unknown[]) => resolveUbicacion(...args),
 }));
 
-const { syncCasos } = await import("./sync");
+const { syncCasos, previewSyncCasos } = await import("./sync");
 
 function makeRow(ot: string): CasoImportRow {
   return {
@@ -49,6 +51,7 @@ beforeEach(() => {
   findMany.mockReset();
   upsert.mockReset();
   updateMany.mockReset();
+  count.mockReset();
   resolveUbicacion.mockReset();
   updateMany.mockResolvedValue({ count: 0 });
   resolveUbicacion.mockResolvedValue({ regionId: null, comunaId: null });
@@ -123,5 +126,31 @@ describe("syncCasos", () => {
         }),
       }),
     );
+  });
+});
+
+describe("previewSyncCasos", () => {
+  it("calcula creados/actualizados/desactivados sin escribir en la base", async () => {
+    findMany.mockResolvedValue([{ ot: "111" }]);
+    count.mockResolvedValue(2);
+
+    const rows = [makeRow("111"), makeRow("222")];
+    const result = await previewSyncCasos(rows);
+
+    expect(count).toHaveBeenCalledWith({
+      where: { ot: { notIn: ["111", "222"] }, activo: true },
+    });
+    expect(upsert).not.toHaveBeenCalled();
+    expect(updateMany).not.toHaveBeenCalled();
+    expect(result).toEqual({ toCreate: 1, toUpdate: 1, toDeactivate: 2 });
+  });
+
+  it("con un archivo vacío, no crea/actualiza nada y cuenta lo que se desactivaría", async () => {
+    findMany.mockResolvedValue([]);
+    count.mockResolvedValue(5);
+
+    const result = await previewSyncCasos([]);
+
+    expect(result).toEqual({ toCreate: 0, toUpdate: 0, toDeactivate: 5 });
   });
 });
