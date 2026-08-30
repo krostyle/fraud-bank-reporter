@@ -1,1 +1,57 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 @AGENTS.md
+
+## Commands
+
+```bash
+npm run dev        # Start dev server (Turbopack)
+npm run build      # Production build (Turbopack)
+npm run start      # Serve the production build
+npm run lint       # ESLint (flat config, next lint was removed in Next 16)
+npm test           # Run the Vitest suite once
+npm run test:watch # Vitest in watch mode
+npx vitest run path/to/file.test.ts   # Run a single test file
+npx vitest run -t "test name"         # Run a single test by name
+
+npx prisma generate       # Regenerate the Prisma Client after any schema.prisma change
+npx prisma migrate dev    # Create/apply a migration in development
+npx prisma studio         # Browse the database
+```
+
+Test runner is Vitest (`vitest.config.mts`), environment `node` — this project has no browser/DOM tests yet, only server-side logic (CSV parser, upsert), so no `jsdom`/testing-library is installed. Add those only when a component actually needs to be tested. Tests live next to the code as `*.test.ts`.
+
+## Architecture
+
+- **Next.js 16, App Router, TypeScript**, source under `src/app`. Path alias `@/*` → `./src/*`.
+- **Styling**: Tailwind CSS v4 + shadcn/ui (`components.json`, style `base-nova`). UI primitives live in `src/components/ui`; add new ones with `npx shadcn@latest add <component>`.
+- **Auth**: Clerk (`@clerk/nextjs`). `src/app/layout.tsx` wraps the app in `<ClerkProvider>`. Route protection/session handling goes through `src/proxy.ts`.
+- **Proxy / Middleware**: Next.js 16 renamed the `middleware.ts` convention to `proxy.ts` (exported function `proxy`, not `middleware`). `src/proxy.ts` currently just runs `clerkMiddleware()`; add `.protect()` calls there as routes need to require auth.
+- **Database**: Prisma ORM 7 targeting Postgres (Neon in production). Config lives in `prisma7.config.ts` (not `schema.prisma`) and reads `DATABASE_URL` via `dotenv/config`. The client is generated to `src/generated/prisma` (gitignored, regenerate with `npx prisma generate`) and instantiated through the `@prisma/adapter-pg` driver adapter — see `src/lib/prisma.ts` for the singleton (`import { prisma } from "@/lib/prisma"`), which also avoids exhausting connections from Next.js dev hot-reload.
+- **Prisma agent skills**: `prisma init` installed reference skills under `.agents/skills` (symlinked from `.claude/skills`, `.windsurf/skills`) covering the Prisma 7 CLI, client API, and Postgres/driver-adapter setup — consult those before making Prisma-related changes, since Prisma 7's config/generator conventions differ from earlier versions.
+- **Environment variables**: `DATABASE_URL`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`. Documented (without real values) in `.env.example`; real values go in the gitignored `.env`.
+- **Deployment target**: Vercel.
+
+## Business context
+
+This is a reporting/dashboard app for importing CSV files of legal cases (bank fraud).
+
+- Each CSV row is a **Caso** (Case). The unique/primary key is the case number, called **OT**.
+- CSV imports are recurring, not one-time. Every import must **upsert by OT**: create if the OT doesn't exist, update its fields if it does.
+- If an OT that previously appeared in the CSV is missing from a new import, **do not delete the record** — mark it inactive/closed via a boolean `activo` field.
+- Source CSVs often have broken encoding (mangled tildes/ñ, e.g. `"N�mero"` instead of `"Número"`). Any CSV parser must normalize encoding on import.
+
+## Metodología de trabajo
+
+Estas reglas aplican a todas las sesiones futuras en este repo:
+
+- **Specs antes de features (SDD)**: antes de implementar cualquier feature no trivial (que toque varios archivos o implique una decisión de diseño), debe existir un spec en `specs/NNN-nombre-feature.md` con: qué debe hacer la feature, reglas de negocio, y criterios de aceptación. El spec se presenta y se espera confirmación explícita del usuario sobre su contenido antes de pasar a la etapa de plan.
+- **Plan antes de código**: nunca implementar directamente desde el spec. Primero presentar un plan técnico con una lista de tareas chicas y verificables, y esperar aprobación antes de escribir código.
+- **Una tarea a la vez**: implementar una tarea del plan a la vez (no el plan completo de una sola vez), y mostrar el diff de cada tarea antes de pasar a la siguiente.
+- **TDD para lógica crítica**: el parser de CSV y la lógica de upsert/reconciliación por OT deben desarrollarse con TDD — escribir primero el test que describe el comportamiento esperado, mostrarlo, confirmar que falla (rojo), y solo después escribir la implementación mínima para que pase (verde). No escribir tests que solo validen código que uno mismo acaba de escribir.
+- **Dashboards/UI**: TDD no es obligatorio para pantallas de dashboard y componentes visuales, pero sí hay que correr `npm run build` y `npm run lint` antes de dar una tarea por terminada.
+- **Tests existentes**: nunca modificar un test existente para que pase sin decirlo explícitamente y explicar por qué.
+- **Definición de "terminado" por spec**: un spec se considera completo cuando todas sus tareas del plan están implementadas y aprobadas, `npm run build` compila sin errores, `npm run lint` no reporta problemas, y (si el spec incluye lógica crítica) los tests correspondientes pasan en verde.
+- **Commit y push automáticos**: apenas un spec cumple la definición de "terminado" de arriba, hacer commit y push a `origin main` automáticamente, sin pedir confirmación adicional para ese push puntual. Si el build, el lint o los tests fallan, no hacer commit: primero arreglar y volver a verificar. Esta autorización cubre únicamente pushes a `origin` derivados de completar un spec bajo este flujo — cualquier otra operación de git fuera de este flujo (force-push, reescritura de historia, push a otro remoto/rama) sigue requiriendo confirmación explícita.
