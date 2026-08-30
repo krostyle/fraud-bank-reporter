@@ -1,28 +1,30 @@
 "use server";
 
+import { del } from "@vercel/blob";
 import { importCasosCsv, previewCasosCsv } from "@/lib/casos/import";
+
+async function readBlob(blobUrl: string): Promise<string> {
+  const response = await fetch(blobUrl);
+  if (!response.ok) {
+    throw new Error("No se pudo leer el archivo subido.");
+  }
+  return response.text();
+}
 
 export type ImportPreviewResult =
   | {
       ok: true;
       preview: { toCreate: number; toUpdate: number; toDeactivate: number };
-      content: string;
     }
   | { ok: false; error: string };
 
 export async function previewImportAction(
-  formData: FormData,
+  blobUrl: string,
 ): Promise<ImportPreviewResult> {
-  const file = formData.get("file");
-  if (!(file instanceof File)) {
-    return { ok: false, error: "No se seleccionó ningún archivo." };
-  }
-
-  const content = await file.text();
-
   try {
+    const content = await readBlob(blobUrl);
     const preview = await previewCasosCsv(content);
-    return { ok: true, preview, content };
+    return { ok: true, preview };
   } catch {
     return {
       ok: false,
@@ -39,10 +41,12 @@ export type ImportConfirmResult =
   | { ok: false; error: string };
 
 export async function confirmImportAction(
-  content: string,
+  blobUrl: string,
 ): Promise<ImportConfirmResult> {
   try {
+    const content = await readBlob(blobUrl);
     const result = await importCasosCsv(content);
+    await del(blobUrl).catch(() => {});
     return { ok: true, result };
   } catch {
     return {

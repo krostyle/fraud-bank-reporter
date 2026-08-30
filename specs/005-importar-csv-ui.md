@@ -11,7 +11,7 @@ Pantalla para subir el archivo CSV de Casos y disparar la lógica de importació
 ## Qué debe hacer la feature
 
 1. Un botón "Importar CSV" visible en una barra debajo del header, en todas las páginas autenticadas, que abre un **dialog** (no una página dedicada — más liviano y evita una pantalla vacía para un flujo tan corto).
-2. El dialog tiene un selector de archivo (solo `.csv`).
+2. El dialog tiene un selector de archivo (solo `.csv`). El archivo se sube directo a **Vercel Blob** desde el navegador (no pasa por el body de la Server Action): Vercel limita a 4.5MB el body de sus Serverless Functions a nivel de infraestructura, algo que ningún archivo CSV real de este sistema puede garantizar respetar. El servidor solo recibe la URL del blob y lo lee desde ahí para parsear/confirmar; el blob se borra después de una importación confirmada.
 3. **Paso de vista previa (antes de escribir nada en la base)**: al elegir el archivo, se parsea y se calcula qué pasaría si se confirma — cuántos Casos se crearían, cuántos se actualizarían, cuántos se desactivarían — sin tocar la base todavía. Esto le da al usuario la oportunidad de darse cuenta de que subió el archivo equivocado antes de comprometerlo.
 4. El usuario revisa ese resumen y confirma explícitamente (botón "Confirmar importación") o cancela (elige otro archivo).
 5. Al confirmar, recién ahí se ejecuta la importación real (misma lógica del spec 001: normalización de encoding, parseo, upsert por OT, baja lógica de OT ausentes) — sin cambios a esa lógica.

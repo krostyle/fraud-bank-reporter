@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, type ChangeEvent } from "react";
+import { upload } from "@vercel/blob/client";
 import { UploadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ type State =
   | { step: "idle" }
   | { step: "previewing" }
   | { step: "preview-error"; error: string }
-  | { step: "preview-ready"; preview: Preview; content: string }
+  | { step: "preview-ready"; preview: Preview; blobUrl: string }
   | { step: "confirming" }
   | { step: "done"; result: FinalResult };
 
@@ -57,9 +58,12 @@ export function ImportDialog() {
     setState({ step: "previewing" });
 
     try {
-      const formData = new FormData();
-      formData.set("file", file);
-      const result = await previewImportAction(formData);
+      const blob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload",
+      });
+
+      const result = await previewImportAction(blob.url);
 
       if (!result.ok) {
         setState({ step: "preview-error", error: result.error });
@@ -68,13 +72,13 @@ export function ImportDialog() {
       setState({
         step: "preview-ready",
         preview: result.preview,
-        content: result.content,
+        blobUrl: blob.url,
       });
     } catch {
       setState({
         step: "preview-error",
         error:
-          "No se pudo leer el archivo. Si es muy grande, intenta dividirlo en archivos más chicos.",
+          "No se pudo subir el archivo. Si es muy grande, intenta dividirlo en archivos más chicos.",
       });
     }
   }
@@ -85,7 +89,7 @@ export function ImportDialog() {
     setState({ step: "confirming" });
 
     try {
-      const result = await confirmImportAction(state.content);
+      const result = await confirmImportAction(state.blobUrl);
 
       if (!result.ok) {
         setState({ step: "preview-error", error: result.error });
