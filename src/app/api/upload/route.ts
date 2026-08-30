@@ -12,12 +12,6 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async () => ({
-        allowedContentTypes: [
-          "text/csv",
-          "application/vnd.ms-excel",
-          "application/csv",
-          "text/plain",
-        ],
         maximumSizeInBytes: 50 * 1024 * 1024,
         addRandomSuffix: true,
       }),
