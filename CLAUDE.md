@@ -27,11 +27,11 @@ Test runner is Vitest (`vitest.config.mts`), environment `node` — this project
 
 - **Next.js 16, App Router, TypeScript**, source under `src/app`. Path alias `@/*` → `./src/*`.
 - **Styling**: Tailwind CSS v4 + shadcn/ui (`components.json`, style `base-nova`). UI primitives live in `src/components/ui`; add new ones with `npx shadcn@latest add <component>`.
-- **Auth**: Clerk (`@clerk/nextjs`). `src/app/layout.tsx` wraps the app in `<ClerkProvider>`. Route protection/session handling goes through `src/proxy.ts`.
-- **Proxy / Middleware**: Next.js 16 renamed the `middleware.ts` convention to `proxy.ts` (exported function `proxy`, not `middleware`). `src/proxy.ts` currently just runs `clerkMiddleware()`; add `.protect()` calls there as routes need to require auth.
+- **Auth**: Clerk (`@clerk/nextjs`, single user for now). `src/app/layout.tsx` wraps the app in `<ClerkProvider>`. `src/proxy.ts` just runs `clerkMiddleware()` with no path matching — the installed Clerk version (7.8.3) **deprecates** `createRouteMatcher`/path-based `.protect()` in middleware (it can drift from Next's actual routing and leave resources unprotected). Protect routes by calling `await auth.protect()` inside the layout/page/route handler itself (resource-based auth) — see `src/app/(app)/layout.tsx` for the pattern. `/sign-in` lives outside that route group so it stays public.
+- **Proxy / Middleware**: Next.js 16 renamed the `middleware.ts` convention to `proxy.ts` (exported function `proxy`, not `middleware`).
 - **Database**: Prisma ORM 7 targeting Postgres (Neon in production). Config lives in `prisma7.config.ts` (not `schema.prisma`) and reads `DATABASE_URL` via `dotenv/config`. The client is generated to `src/generated/prisma` (gitignored, regenerate with `npx prisma generate`) and instantiated through the `@prisma/adapter-pg` driver adapter — see `src/lib/prisma.ts` for the singleton (`import { prisma } from "@/lib/prisma"`), which also avoids exhausting connections from Next.js dev hot-reload.
 - **Prisma agent skills**: `prisma init` installed reference skills under `.agents/skills` (symlinked from `.claude/skills`, `.windsurf/skills`) covering the Prisma 7 CLI, client API, and Postgres/driver-adapter setup — consult those before making Prisma-related changes, since Prisma 7's config/generator conventions differ from earlier versions.
-- **Environment variables**: `DATABASE_URL`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`. Documented (without real values) in `.env.example`; real values go in the gitignored `.env`.
+- **Environment variables**: `DATABASE_URL`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_SIGN_IN_URL`. Documented (without real values) in `.env.example`; real values go in the gitignored `.env`.
 - **Deployment target**: Vercel.
 
 ## Business context
