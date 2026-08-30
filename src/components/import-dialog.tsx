@@ -74,7 +74,7 @@ export function ImportDialog() {
       setState({
         step: "preview-error",
         error:
-          "No se pudo leer el archivo. Si es muy grande, probá dividirlo en archivos más chicos.",
+          "No se pudo leer el archivo. Si es muy grande, intenta dividirlo en archivos más chicos.",
       });
     }
   }
@@ -95,7 +95,7 @@ export function ImportDialog() {
     } catch {
       setState({
         step: "preview-error",
-        error: "Ocurrió un error al confirmar la importación. Probá de nuevo.",
+        error: "Ocurrió un error al confirmar la importación. Intenta de nuevo.",
       });
     }
   }
@@ -117,7 +117,7 @@ export function ImportDialog() {
         <DialogHeader>
           <DialogTitle>Importar Casos desde CSV</DialogTitle>
           <DialogDescription>
-            Subí el archivo exportado del sistema de origen para crear y
+            Sube el archivo exportado del sistema de origen para crear y
             actualizar Casos.
           </DialogDescription>
         </DialogHeader>

@@ -26,7 +26,7 @@ export async function previewImportAction(
   } catch {
     return {
       ok: false,
-      error: "No se pudo leer el archivo como CSV. Verificá que el formato sea correcto.",
+      error: "No se pudo leer el archivo como CSV. Verifica que el formato sea correcto.",
     };
   }
 }
