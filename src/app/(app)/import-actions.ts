@@ -8,7 +8,9 @@ async function readBlob(blobUrl: string): Promise<string> {
     headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
   });
   if (!response.ok) {
-    throw new Error("No se pudo leer el archivo subido.");
+    throw new Error(
+      `No se pudo leer el archivo subido (HTTP ${response.status}).`,
+    );
   }
   return response.text();
 }
@@ -27,10 +29,11 @@ export async function previewImportAction(
     const content = await readBlob(blobUrl);
     const preview = await previewCasosCsv(content);
     return { ok: true, preview };
-  } catch {
+  } catch (error) {
+    console.error("previewImportAction failed:", error);
     return {
       ok: false,
-      error: "No se pudo leer el archivo como CSV. Verifica que el formato sea correcto.",
+      error: `No se pudo leer el archivo como CSV: ${(error as Error).message}`,
     };
   }
 }
@@ -50,10 +53,11 @@ export async function confirmImportAction(
     const result = await importCasosCsv(content);
     await del(blobUrl).catch(() => {});
     return { ok: true, result };
-  } catch {
+  } catch (error) {
+    console.error("confirmImportAction failed:", error);
     return {
       ok: false,
-      error: "Ocurrió un error al confirmar la importación.",
+      error: `Ocurrió un error al confirmar la importación: ${(error as Error).message}`,
     };
   }
 }
