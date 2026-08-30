@@ -56,32 +56,48 @@ export function ImportDialog() {
 
     setState({ step: "previewing" });
 
-    const formData = new FormData();
-    formData.set("file", file);
-    const result = await previewImportAction(formData);
+    try {
+      const formData = new FormData();
+      formData.set("file", file);
+      const result = await previewImportAction(formData);
 
-    if (!result.ok) {
-      setState({ step: "preview-error", error: result.error });
-      return;
+      if (!result.ok) {
+        setState({ step: "preview-error", error: result.error });
+        return;
+      }
+      setState({
+        step: "preview-ready",
+        preview: result.preview,
+        content: result.content,
+      });
+    } catch {
+      setState({
+        step: "preview-error",
+        error:
+          "No se pudo leer el archivo. Si es muy grande, probá dividirlo en archivos más chicos.",
+      });
     }
-    setState({
-      step: "preview-ready",
-      preview: result.preview,
-      content: result.content,
-    });
   }
 
   async function handleConfirm() {
     if (state.step !== "preview-ready") return;
 
     setState({ step: "confirming" });
-    const result = await confirmImportAction(state.content);
 
-    if (!result.ok) {
-      setState({ step: "preview-error", error: result.error });
-      return;
+    try {
+      const result = await confirmImportAction(state.content);
+
+      if (!result.ok) {
+        setState({ step: "preview-error", error: result.error });
+        return;
+      }
+      setState({ step: "done", result: result.result });
+    } catch {
+      setState({
+        step: "preview-error",
+        error: "Ocurrió un error al confirmar la importación. Probá de nuevo.",
+      });
     }
-    setState({ step: "done", result: result.result });
   }
 
   const busy = state.step === "previewing" || state.step === "confirming";
