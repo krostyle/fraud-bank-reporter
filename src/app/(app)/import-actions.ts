@@ -1,6 +1,7 @@
 "use server";
 
 import { del } from "@vercel/blob";
+import { decodeCsvBuffer } from "@/lib/casos/encoding";
 import { importCasosCsv, previewCasosCsv } from "@/lib/casos/import";
 
 async function readBlob(blobUrl: string): Promise<string> {
@@ -12,7 +13,7 @@ async function readBlob(blobUrl: string): Promise<string> {
       `No se pudo leer el archivo subido (HTTP ${response.status}).`,
     );
   }
-  return response.text();
+  return decodeCsvBuffer(await response.arrayBuffer());
 }
 
 export type ImportPreviewResult =
