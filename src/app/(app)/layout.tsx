@@ -1,5 +1,6 @@
 import { UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
+import Link from "next/link";
 import { ImportDialog } from "@/components/import-dialog";
 
 // La importación de CSV puede tardar bastante con archivos grandes
@@ -15,9 +16,19 @@ export default async function AppLayout({
   return (
     <div className="flex flex-1 flex-col">
       <header className="flex items-center justify-between bg-primary px-6 py-3 text-primary-foreground">
-        <span className="font-semibold tracking-tight">
-          Sistema de Gestión de Fraudes
-        </span>
+        <div className="flex items-center gap-6">
+          <span className="font-semibold tracking-tight">
+            Sistema de Gestión de Fraudes
+          </span>
+          <nav className="flex items-center gap-4 text-sm">
+            <Link href="/" className="hover:underline">
+              Casos
+            </Link>
+            <Link href="/estadisticas" className="hover:underline">
+              Estadísticas
+            </Link>
+          </nav>
+        </div>
         <UserButton />
       </header>
       <div className="flex justify-end border-b bg-muted/30 px-6 py-2">
