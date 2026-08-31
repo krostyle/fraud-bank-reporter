@@ -17,16 +17,15 @@ export type CasosDashboardFilters = {
 export async function getCasosDashboard(filters: CasosDashboardFilters) {
   const page = filters.page && filters.page > 0 ? filters.page : 1;
 
-  const where: Prisma.CasoWhereInput = {};
-
-  if (filters.activo === "inactivos") {
-    where.activo = false;
-  } else if (filters.activo !== "todos") {
-    where.activo = true;
-  }
+  // Filtros que comparten la tabla y los KPIs — todo menos el toggle
+  // activo/inactivo, para que los KPIs reflejen la búsqueda actual pero
+  // sigan mostrando el desglose activos/inactivos completo (si dependieran
+  // también del toggle, filtrar por "Inactivos" dejaría la tarjeta "Casos
+  // activos" en 0, lo cual es redundante con la tarjeta de inactivos).
+  const sharedWhere: Prisma.CasoWhereInput = {};
 
   if (filters.q) {
-    where.OR = [
+    sharedWhere.OR = [
       { ot: { contains: filters.q, mode: "insensitive" } },
       { rut: { contains: filters.q, mode: "insensitive" } },
       { nombreContacto: { contains: filters.q, mode: "insensitive" } },
@@ -34,23 +33,31 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
   }
 
   if (filters.estado) {
-    where.estadoAccionLegal = filters.estado;
+    sharedWhere.estadoAccionLegal = filters.estado;
   }
 
   if (filters.subStatus) {
-    where.subStatus = filters.subStatus;
+    sharedWhere.subStatus = filters.subStatus;
   }
 
   if (filters.propietario) {
-    where.propietarioCaso = filters.propietario;
+    sharedWhere.propietarioCaso = filters.propietario;
   }
 
   if (filters.regionId) {
-    where.regionId = filters.regionId;
+    sharedWhere.regionId = filters.regionId;
   }
 
   if (filters.comunaId) {
-    where.comunaId = filters.comunaId;
+    sharedWhere.comunaId = filters.comunaId;
+  }
+
+  const where: Prisma.CasoWhereInput = { ...sharedWhere };
+
+  if (filters.activo === "inactivos") {
+    where.activo = false;
+  } else if (filters.activo !== "todos") {
+    where.activo = true;
   }
 
   const [
@@ -73,15 +80,15 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
       orderBy: { ot: "asc" },
     }),
     prisma.caso.count({ where }),
-    prisma.caso.count({ where: { activo: true } }),
-    prisma.caso.count({ where: { activo: false } }),
+    prisma.caso.count({ where: { ...sharedWhere, activo: true } }),
+    prisma.caso.count({ where: { ...sharedWhere, activo: false } }),
     prisma.caso.aggregate({
-      where: { activo: true },
+      where: { ...sharedWhere, activo: true },
       _sum: { montoTotalReclamadoUf: true },
     }),
     prisma.caso.groupBy({
       by: ["estadoAccionLegal"],
-      where: { activo: true },
+      where: { ...sharedWhere, activo: true },
       _count: { _all: true },
     }),
     prisma.caso.findMany({

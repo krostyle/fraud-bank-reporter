@@ -27,6 +27,7 @@ Esta feature cubre:
    - Total de Casos inactivos (cerrados).
    - Monto total reclamado (UF), sumado sobre los Casos activos.
    - Desglose de Casos activos por `Estado Acción Legal` (ej. Pendiente: N, En proceso: N, Terminada: N).
+   - **Los KPIs responden a los filtros de contenido** (búsqueda, Estado, Sub Status, Propietario, Región, Comuna) — si filtrás por región, el monto y el desglose son los de esa región, no los de toda la base. La única excepción es el toggle "Mostrar" (activo/inactivo/todos): los KPIs siempre calculan el desglose activos/inactivos completo para el resto de los filtros, sin importar qué esté seleccionado ahí — si dependieran también del toggle, filtrar por "Inactivos" dejaría la tarjeta "Casos activos" en 0, redundante con la tarjeta de inactivos.
 2. **Filtros y búsqueda**, combinables entre sí:
    - Búsqueda de texto libre que matchea por OT, RUT o Nombre del contacto.
    - Filtro por `Estado Acción Legal` (select).
