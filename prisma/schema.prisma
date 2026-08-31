@@ -34,6 +34,9 @@ model Caso {
   abogadoAsignado                      String?
   fechaCreacionAccionLegal             DateTime?
   tipoCaso                             String?
+  otUr                                 String?
+  fechaRecepcion                       DateTime?
+  estadoFiscalia                       String?
   activo                               Boolean   @default(true)
 
   regionId                             String?

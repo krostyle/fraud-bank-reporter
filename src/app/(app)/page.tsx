@@ -28,6 +28,8 @@ function unwrap(value: string | string[] | undefined): string | undefined {
 }
 
 const dash = (value: string | null) => value ?? "—";
+const dashDate = (value: Date | null) =>
+  value ? value.toLocaleDateString("es-CL") : "—";
 
 export default async function Home({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
@@ -134,13 +136,16 @@ export default async function Home({ searchParams }: PageProps<"/">) {
               <TableHead>Abogado</TableHead>
               <TableHead>Estado Acción Legal</TableHead>
               <TableHead>Monto (CLP)</TableHead>
+              <TableHead>OT UR</TableHead>
+              <TableHead>Fecha Recepción</TableHead>
+              <TableHead>Estado Fiscalía</TableHead>
               <TableHead>Estado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {dashboard.casos.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground">
+                <TableCell colSpan={12} className="text-center text-muted-foreground">
                   No hay Casos que coincidan con los filtros.
                 </TableCell>
               </TableRow>
@@ -165,6 +170,9 @@ export default async function Home({ searchParams }: PageProps<"/">) {
                         })
                     : "—"}
                 </TableCell>
+                <TableCell>{dash(caso.otUr)}</TableCell>
+                <TableCell>{dashDate(caso.fechaRecepcion)}</TableCell>
+                <TableCell>{dash(caso.estadoFiscalia)}</TableCell>
                 <TableCell>
                   <Badge variant={caso.activo ? "default" : "outline"}>
                     {caso.activo ? "Activo" : "Inactivo"}
