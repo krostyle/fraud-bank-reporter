@@ -14,7 +14,10 @@ export type CasoImportRow = {
   tribunal: string | null;
   localidadComunaRegion: string | null;
   propietarioCaso: string | null;
-  montoTotalReclamadoUf: number | null;
+  montoTotalSuspendidoClp: number | null;
   ultimaModificacionPor: string | null;
   estadoAccionLegal: string | null;
+  abogadoAsignado: string | null;
+  fechaCreacionAccionLegal: Date | null;
+  tipoCaso: string | null;
 };

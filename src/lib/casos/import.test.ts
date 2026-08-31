@@ -23,12 +23,12 @@ vi.mock("@/lib/prisma", () => ({
 const { importCasosCsv, previewCasosCsv } = await import("./import");
 
 const HEADER =
-  '"Caso: Número del caso","Caso: RUT (Cliente)","Caso: Nombre del contacto","Caso: Sub Status","Caso: Fecha Envío Fiscalía","Fecha Presentación","Año Presentación","Rol","Fecha Resolución del Tribunal","Fecha Notificación Resolución Tribunal","Resolución del Tribunal","Número del Tribunal","Tribunal","Caso: Localidad / Comuna / Región","Caso: Propietario del caso","Caso: Monto Total Reclamado UF","Acción Legal: Última modificación por","Estado Acción Legal"';
+  '"Caso: Número del caso","Caso: RUT (Cliente)","Caso: Nombre del contacto","Estado Acción Legal","Caso: Sub Status","Caso: Fecha Envío Fiscalía","Fecha Presentación","Año Presentación","Rol","Fecha Resolución del Tribunal","Fecha Notificación Resolución Tribunal","Resolución del Tribunal","Número del Tribunal","Tribunal","Caso: Localidad / Comuna / Región","Caso: Propietario del caso","Caso: Monto Total Suspendido","Acción Legal: Última modificación por","Abogado Asignado","Acción Legal: Fecha de creación","Caso: Tipo"';
 
 const SAMPLE_CSV = [
   HEADER,
-  '"87837653","91518937","LUIS RICARDO FERNANDEZ PIMENTEL","En Espera de Fecha Final de Resolución","27-01-2026, 13:23","30-01-2026","2026","12884","12-08-2026","13-08-2026","Acoge","1","Primer Juzgado de Policía Local Recoleta","REGION METROPOLITANA,RECOLETA,","Manuel José Searle Risopatrón","54,11883737","Manuel Searle Risopatrón",""',
-  '"102812617","172762816","VICTOR ALFONSO TRIGO ARAYA","Anulado","07-07-2026, 14:15","","","","","","","","","QUINTA REGION,VINA DEL MAR,NUEVA AURORA","JAIRO GABRIEL BECERRA BRIONES","131,04160506","Eduvis Jimenez Mejias","Pendiente"',
+  '"87837653","91518937","LUIS RICARDO FERNANDEZ PIMENTEL","","En Espera de Fecha Final de Resolución","27-01-2026, 13:23","30-01-2026","2026","12884","12-08-2026","13-08-2026","Acoge","1","Primer Juzgado de Policía Local Recoleta","REGION METROPOLITANA,RECOLETA,","Manuel José Searle Risopatrón","54,11883737","Manuel Searle Risopatrón","María Soto Abogada","01-01-2026","Demanda"',
+  '"102812617","172762816","VICTOR ALFONSO TRIGO ARAYA","Pendiente","Anulado","07-07-2026, 14:15","","","","","","","","","QUINTA REGION,VINA DEL MAR,NUEVA AURORA","JAIRO GABRIEL BECERRA BRIONES","131,04160506","Eduvis Jimenez Mejias","","",""',
 ].join("\n");
 
 const CATALOGO_PRUEBA = [
@@ -69,7 +69,9 @@ describe("importCasosCsv", () => {
         create: expect.objectContaining({
           ot: "87837653",
           nombreContacto: "LUIS RICARDO FERNANDEZ PIMENTEL",
-          montoTotalReclamadoUf: 54.11883737,
+          montoTotalSuspendidoClp: 54.11883737,
+          abogadoAsignado: "María Soto Abogada",
+          tipoCaso: "Demanda",
           regionId: "region-rm",
           comunaId: "comuna-recoleta",
           activo: true,

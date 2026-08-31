@@ -1,6 +1,6 @@
-export function parseMontoUf(value: string): number | null {
+export function parseMontoClp(value: string): number | null {
   if (value === "") return null;
-  return Number(value.replace(",", "."));
+  return Number(value.replace(/\./g, "").replace(",", "."));
 }
 
 const FECHA_HORA_RE =

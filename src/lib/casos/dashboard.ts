@@ -8,6 +8,7 @@ export type CasosDashboardFilters = {
   estado?: string;
   subStatus?: string;
   propietario?: string;
+  abogado?: string;
   regionId?: string;
   comunaId?: string;
   activo?: "activos" | "inactivos" | "todos";
@@ -44,6 +45,10 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
     sharedWhere.propietarioCaso = filters.propietario;
   }
 
+  if (filters.abogado) {
+    sharedWhere.abogadoAsignado = filters.abogado;
+  }
+
   if (filters.regionId) {
     sharedWhere.regionId = filters.regionId;
   }
@@ -70,6 +75,7 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
     estadosRows,
     subStatusesRows,
     propietariosRows,
+    abogadosRows,
     regionesDisponibles,
     comunasDisponibles,
   ] = await Promise.all([
@@ -84,7 +90,7 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
     prisma.caso.count({ where: { ...sharedWhere, activo: false } }),
     prisma.caso.aggregate({
       where: { ...sharedWhere, activo: true },
-      _sum: { montoTotalReclamadoUf: true },
+      _sum: { montoTotalSuspendidoClp: true },
     }),
     prisma.caso.groupBy({
       by: ["estadoAccionLegal"],
@@ -109,6 +115,12 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
       where: { propietarioCaso: { not: null } },
       orderBy: { propietarioCaso: "asc" },
     }),
+    prisma.caso.findMany({
+      distinct: ["abogadoAsignado"],
+      select: { abogadoAsignado: true },
+      where: { abogadoAsignado: { not: null } },
+      orderBy: { abogadoAsignado: "asc" },
+    }),
     prisma.region.findMany({
       where: { casos: { some: {} } },
       orderBy: { nombre: "asc" },
@@ -127,12 +139,13 @@ export async function getCasosDashboard(filters: CasosDashboardFilters) {
     estadosDisponibles: estadosRows.map((row) => row.estadoAccionLegal as string),
     subStatusesDisponibles: subStatusesRows.map((row) => row.subStatus as string),
     propietariosDisponibles: propietariosRows.map((row) => row.propietarioCaso as string),
+    abogadosDisponibles: abogadosRows.map((row) => row.abogadoAsignado as string),
     regionesDisponibles,
     comunasDisponibles,
     kpis: {
       activos,
       inactivos,
-      montoTotalActivosUf: montoAgg._sum.montoTotalReclamadoUf?.toNumber() ?? 0,
+      montoTotalSuspendidoClp: montoAgg._sum.montoTotalSuspendidoClp?.toNumber() ?? 0,
       porEstado: porEstado.map((grupo) => ({
         estado: grupo.estadoAccionLegal ?? "Sin estado",
         count: grupo._count._all,

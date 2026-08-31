@@ -41,9 +41,12 @@ function makeRow(ot: string): CasoImportRow {
     tribunal: null,
     localidadComunaRegion: null,
     propietarioCaso: null,
-    montoTotalReclamadoUf: null,
+    montoTotalSuspendidoClp: null,
     ultimaModificacionPor: null,
     estadoAccionLegal: null,
+    abogadoAsignado: null,
+    fechaCreacionAccionLegal: null,
+    tipoCaso: null,
   };
 }
 

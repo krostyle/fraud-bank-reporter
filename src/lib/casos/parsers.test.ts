@@ -1,17 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { parseFechaHora, parseMontoUf } from "./parsers";
+import { parseFechaHora, parseMontoClp } from "./parsers";
 
-describe("parseMontoUf", () => {
-  it("parsea un monto positivo con coma decimal", () => {
-    expect(parseMontoUf("17,84717275")).toBe(17.84717275);
+describe("parseMontoClp", () => {
+  it("parsea un monto con separador de miles", () => {
+    expect(parseMontoClp("1.234.567")).toBe(1234567);
   });
 
-  it("parsea un monto negativo con coma decimal", () => {
-    expect(parseMontoUf("-3,70587915")).toBe(-3.70587915);
+  it("parsea un monto con separador de miles y decimales", () => {
+    expect(parseMontoClp("1.234.567,5")).toBe(1234567.5);
+  });
+
+  it("parsea un monto sin separador de miles", () => {
+    expect(parseMontoClp("1234567")).toBe(1234567);
+  });
+
+  it("parsea un monto negativo", () => {
+    expect(parseMontoClp("-1.234.567")).toBe(-1234567);
   });
 
   it("devuelve null para un valor vacío", () => {
-    expect(parseMontoUf("")).toBeNull();
+    expect(parseMontoClp("")).toBeNull();
   });
 });
 

@@ -44,6 +44,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
     estado: unwrap(params.estado),
     subStatus: unwrap(params.subStatus),
     propietario: unwrap(params.propietario),
+    abogado: unwrap(params.abogado),
     regionId: unwrap(params.regionId),
     comunaId: unwrap(params.comunaId),
     activo,
@@ -85,11 +86,13 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Monto reclamado (UF)</CardTitle>
+            <CardTitle>Monto suspendido (CLP)</CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold">
-            {dashboard.kpis.montoTotalActivosUf.toLocaleString("es-CL", {
-              maximumFractionDigits: 2,
+            {dashboard.kpis.montoTotalSuspendidoClp.toLocaleString("es-CL", {
+              style: "currency",
+              currency: "CLP",
+              maximumFractionDigits: 0,
             })}
           </CardContent>
         </Card>
@@ -114,6 +117,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         estadosDisponibles={dashboard.estadosDisponibles}
         subStatusesDisponibles={dashboard.subStatusesDisponibles}
         propietariosDisponibles={dashboard.propietariosDisponibles}
+        abogadosDisponibles={dashboard.abogadosDisponibles}
         regionesDisponibles={dashboard.regionesDisponibles}
         comunasDisponibles={dashboard.comunasDisponibles}
       />
@@ -127,15 +131,16 @@ export default async function Home({ searchParams }: PageProps<"/">) {
               <TableHead>RUT</TableHead>
               <TableHead>Sub Status</TableHead>
               <TableHead>Propietario</TableHead>
+              <TableHead>Abogado</TableHead>
               <TableHead>Estado Acción Legal</TableHead>
-              <TableHead>Monto UF</TableHead>
+              <TableHead>Monto (CLP)</TableHead>
               <TableHead>Estado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {dashboard.casos.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={9} className="text-center text-muted-foreground">
                   No hay Casos que coincidan con los filtros.
                 </TableCell>
               </TableRow>
@@ -147,12 +152,17 @@ export default async function Home({ searchParams }: PageProps<"/">) {
                 <TableCell>{dash(caso.rut)}</TableCell>
                 <TableCell>{dash(caso.subStatus)}</TableCell>
                 <TableCell>{dash(caso.propietarioCaso)}</TableCell>
+                <TableCell>{dash(caso.abogadoAsignado)}</TableCell>
                 <TableCell>{dash(caso.estadoAccionLegal)}</TableCell>
                 <TableCell>
-                  {caso.montoTotalReclamadoUf
-                    ? caso.montoTotalReclamadoUf
+                  {caso.montoTotalSuspendidoClp
+                    ? caso.montoTotalSuspendidoClp
                         .toNumber()
-                        .toLocaleString("es-CL", { maximumFractionDigits: 2 })
+                        .toLocaleString("es-CL", {
+                          style: "currency",
+                          currency: "CLP",
+                          maximumFractionDigits: 0,
+                        })
                     : "—"}
                 </TableCell>
                 <TableCell>

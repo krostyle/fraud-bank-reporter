@@ -1,43 +1,72 @@
 import { describe, expect, it } from "vitest";
 import { parseCasosCsv } from "./csv";
 
-const HEADER =
-  '"Caso: Número del caso","Caso: RUT (Cliente)","Caso: Nombre del contacto","Caso: Sub Status","Caso: Fecha Envío Fiscalía","Fecha Presentación","Año Presentación","Rol","Fecha Resolución del Tribunal","Fecha Notificación Resolución Tribunal","Resolución del Tribunal","Número del Tribunal","Tribunal","Caso: Localidad / Comuna / Región","Caso: Propietario del caso","Caso: Monto Total Reclamado UF","Acción Legal: Última modificación por","Estado Acción Legal"';
+const HEADER_ORDER = [
+  "Caso: Número del caso",
+  "Caso: RUT (Cliente)",
+  "Caso: Nombre del contacto",
+  "Estado Acción Legal",
+  "Caso: Sub Status",
+  "Caso: Fecha Envío Fiscalía",
+  "Fecha Presentación",
+  "Año Presentación",
+  "Rol",
+  "Fecha Resolución del Tribunal",
+  "Fecha Notificación Resolución Tribunal",
+  "Resolución del Tribunal",
+  "Número del Tribunal",
+  "Tribunal",
+  "Caso: Localidad / Comuna / Región",
+  "Caso: Propietario del caso",
+  "Caso: Monto Total Suspendido",
+  "Acción Legal: Última modificación por",
+  "Abogado Asignado",
+  "Acción Legal: Fecha de creación",
+  "Caso: Tipo",
+];
 
-function row(fields: string[]): string {
-  return fields.map((f) => `"${f}"`).join(",");
+function csvLine(values: string[]): string {
+  return values.map((v) => `"${v}"`).join(",");
+}
+
+function buildCsv(
+  rows: Record<string, string>[],
+  headers: string[] = HEADER_ORDER,
+): string {
+  const lines = [
+    csvLine(headers),
+    ...rows.map((data) => csvLine(headers.map((h) => data[h] ?? ""))),
+  ];
+  return lines.join("\n");
 }
 
 describe("parseCasosCsv", () => {
-  it("parsea filas, repara mojibake, convierte fechas/montos y respeta vacíos", () => {
+  it("parsea filas por nombre de cabecera, repara mojibake, convierte fechas/montos y respeta vacíos", () => {
     const nombreCorrecto = "PEDRO NÚÑEZ";
-    const nombreMojibake = Buffer.from(nombreCorrecto, "utf8").toString(
-      "latin1",
-    );
 
-    const csv = [
-      HEADER,
-      row([
-        "111",
-        "12345678-9",
-        nombreMojibake,
-        "Pendiente",
-        "27-01-2026, 13:23",
-        "30-01-2026",
-        "2026",
-        "12884",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "REGION METROPOLITANA,RECOLETA,",
-        "Juan Perez",
-        "17,84717275",
-        "Juan Perez",
-        "Pendiente",
-      ]),
-    ].join("\n");
+    const csvCorrecto = buildCsv([
+      {
+        "Caso: Número del caso": "111",
+        "Caso: RUT (Cliente)": "12345678-9",
+        "Caso: Nombre del contacto": nombreCorrecto,
+        "Estado Acción Legal": "Pendiente",
+        "Caso: Sub Status": "Anulado",
+        "Caso: Fecha Envío Fiscalía": "27-01-2026, 13:23",
+        "Fecha Presentación": "30-01-2026",
+        "Año Presentación": "2026",
+        Rol: "12884",
+        "Caso: Localidad / Comuna / Región": "REGION METROPOLITANA,RECOLETA,",
+        "Caso: Propietario del caso": "Juan Perez",
+        "Caso: Monto Total Suspendido": "1.234.567",
+        "Acción Legal: Última modificación por": "Juan Perez",
+        "Abogado Asignado": "María Soto",
+        "Acción Legal: Fecha de creación": "15-01-2026",
+        "Caso: Tipo": "Demanda",
+      },
+    ]);
+    // Simula un archivo completo con mojibake por doble codificación (spec 001) —
+    // afecta todo el archivo, cabeceras incluidas, no un campo suelto.
+    const csv = Buffer.from(csvCorrecto, "utf8").toString("latin1");
 
     const [caso] = parseCasosCsv(csv);
 
@@ -45,15 +74,18 @@ describe("parseCasosCsv", () => {
       ot: "111",
       rut: "12345678-9",
       nombreContacto: nombreCorrecto,
-      subStatus: "Pendiente",
+      // Estado Acción Legal y Sub Status no deben cruzarse pese al reordenamiento de columnas.
+      estadoAccionLegal: "Pendiente",
+      subStatus: "Anulado",
       anioPresentacion: "2026",
       rol: "12884",
       fechaResolucionTribunal: null,
       localidadComunaRegion: "REGION METROPOLITANA,RECOLETA,",
       propietarioCaso: "Juan Perez",
-      montoTotalReclamadoUf: 17.84717275,
+      montoTotalSuspendidoClp: 1234567,
       ultimaModificacionPor: "Juan Perez",
-      estadoAccionLegal: "Pendiente",
+      abogadoAsignado: "María Soto",
+      tipoCaso: "Demanda",
     });
     expect(caso.fechaEnvioFiscalia?.toISOString()).toBe(
       new Date(2026, 0, 27, 13, 23).toISOString(),
@@ -61,33 +93,16 @@ describe("parseCasosCsv", () => {
     expect(caso.fechaPresentacion?.toISOString()).toBe(
       new Date(2026, 0, 30).toISOString(),
     );
+    expect(caso.fechaCreacionAccionLegal?.toISOString()).toBe(
+      new Date(2026, 0, 15).toISOString(),
+    );
   });
 
   it("si una OT se repite en el archivo, se queda con la última fila", () => {
-    const baseRow = [
-      "111",
-      "",
-      "",
-      "Pendiente",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "Pendiente",
-    ];
-    const updatedRow = [...baseRow];
-    updatedRow[17] = "Terminada";
-
-    const csv = [HEADER, row(baseRow), row(updatedRow)].join("\n");
+    const csv = buildCsv([
+      { "Caso: Número del caso": "111", "Estado Acción Legal": "Pendiente" },
+      { "Caso: Número del caso": "111", "Estado Acción Legal": "Terminada" },
+    ]);
 
     const rows = parseCasosCsv(csv);
 
@@ -96,16 +111,25 @@ describe("parseCasosCsv", () => {
   });
 
   it("filas con distinta OT se mantienen todas", () => {
-    const rowFor = (ot: string) => {
-      const fields = new Array(18).fill("");
-      fields[0] = ot;
-      return row(fields);
-    };
-
-    const csv = [HEADER, rowFor("111"), rowFor("222")].join("\n");
+    const csv = buildCsv([
+      { "Caso: Número del caso": "111" },
+      { "Caso: Número del caso": "222" },
+    ]);
 
     const rows = parseCasosCsv(csv);
 
     expect(rows.map((r) => r.ot)).toEqual(["111", "222"]);
+  });
+
+  it("lanza un error claro si falta una cabecera esperada", () => {
+    const headersSinAbogado = HEADER_ORDER.filter(
+      (h) => h !== "Abogado Asignado",
+    );
+    const csv = buildCsv(
+      [{ "Caso: Número del caso": "111" }],
+      headersSinAbogado,
+    );
+
+    expect(() => parseCasosCsv(csv)).toThrow(/Abogado Asignado/);
   });
 });

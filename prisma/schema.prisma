@@ -28,9 +28,12 @@ model Caso {
   tribunal                             String?
   localidadComunaRegion                String?
   propietarioCaso                      String?
-  montoTotalReclamadoUf                Decimal?  @db.Decimal
+  montoTotalSuspendidoClp              Decimal?  @db.Decimal
   ultimaModificacionPor                String?
   estadoAccionLegal                    String?
+  abogadoAsignado                      String?
+  fechaCreacionAccionLegal             DateTime?
+  tipoCaso                             String?
   activo                               Boolean   @default(true)
 
   regionId                             String?
