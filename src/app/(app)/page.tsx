@@ -28,8 +28,6 @@ function unwrap(value: string | string[] | undefined): string | undefined {
 }
 
 const dash = (value: string | null) => value ?? "—";
-const dashDate = (value: Date | null) =>
-  value ? value.toLocaleDateString("es-CL") : "—";
 
 export default async function Home({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
@@ -129,23 +127,17 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           <TableHeader>
             <TableRow>
               <TableHead>OT</TableHead>
-              <TableHead>Nombre del contacto</TableHead>
-              <TableHead>RUT</TableHead>
               <TableHead>Sub Status</TableHead>
-              <TableHead>Propietario</TableHead>
               <TableHead>Abogado</TableHead>
               <TableHead>Estado Acción Legal</TableHead>
-              <TableHead>Monto (CLP)</TableHead>
-              <TableHead>OT UR</TableHead>
-              <TableHead>Fecha Recepción</TableHead>
-              <TableHead>Estado Fiscalía</TableHead>
+              <TableHead>Estado Denuncia</TableHead>
               <TableHead>Estado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {dashboard.casos.length === 0 && (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   No hay Casos que coincidan con los filtros.
                 </TableCell>
               </TableRow>
@@ -153,25 +145,9 @@ export default async function Home({ searchParams }: PageProps<"/">) {
             {dashboard.casos.map((caso) => (
               <TableRow key={caso.ot}>
                 <TableCell>{caso.ot}</TableCell>
-                <TableCell>{dash(caso.nombreContacto)}</TableCell>
-                <TableCell>{dash(caso.rut)}</TableCell>
                 <TableCell>{dash(caso.subStatus)}</TableCell>
-                <TableCell>{dash(caso.propietarioCaso)}</TableCell>
                 <TableCell>{dash(caso.abogadoAsignado)}</TableCell>
                 <TableCell>{dash(caso.estadoAccionLegal)}</TableCell>
-                <TableCell>
-                  {caso.montoTotalSuspendidoClp
-                    ? caso.montoTotalSuspendidoClp
-                        .toNumber()
-                        .toLocaleString("es-CL", {
-                          style: "currency",
-                          currency: "CLP",
-                          maximumFractionDigits: 0,
-                        })
-                    : "—"}
-                </TableCell>
-                <TableCell>{dash(caso.otUr)}</TableCell>
-                <TableCell>{dashDate(caso.fechaRecepcion)}</TableCell>
                 <TableCell>{dash(caso.estadoFiscalia)}</TableCell>
                 <TableCell>
                   <Badge variant={caso.activo ? "default" : "outline"}>

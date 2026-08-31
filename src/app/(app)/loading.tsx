@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 
 const FILTER_COUNT = 7;
-const COLUMN_COUNT = 12;
+const COLUMN_COUNT = 6;
 const ROW_COUNT = 10;
 
 export default function Loading() {
