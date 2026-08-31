@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getCasosDashboard } from "@/lib/casos/dashboard";
 import {
   Card,
@@ -144,7 +145,11 @@ export default async function Home({ searchParams }: PageProps<"/">) {
             )}
             {dashboard.casos.map((caso) => (
               <TableRow key={caso.ot}>
-                <TableCell>{caso.ot}</TableCell>
+                <TableCell>
+                  <Link href={`/casos/${caso.ot}`} className="text-primary hover:underline">
+                    {caso.ot}
+                  </Link>
+                </TableCell>
                 <TableCell>{dash(caso.subStatus)}</TableCell>
                 <TableCell>{dash(caso.abogadoAsignado)}</TableCell>
                 <TableCell>{dash(caso.estadoAccionLegal)}</TableCell>
