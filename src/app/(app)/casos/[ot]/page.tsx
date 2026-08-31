@@ -41,7 +41,7 @@ export default async function CasoDetallePage({
         </h1>
       </div>
 
-      <Tabs defaultValue="demanda">
+      <Tabs defaultValue="datos">
         <TabsList>
           <TabsTrigger value="datos">Datos del Caso</TabsTrigger>
           <TabsTrigger value="mp">Medida Precautoria (MP)</TabsTrigger>
@@ -49,14 +49,6 @@ export default async function CasoDetallePage({
         </TabsList>
 
         <TabsContent value="datos" className="pt-4">
-          <p className="text-sm text-muted-foreground">Próximamente.</p>
-        </TabsContent>
-
-        <TabsContent value="mp" className="pt-4">
-          <p className="text-sm text-muted-foreground">Próximamente.</p>
-        </TabsContent>
-
-        <TabsContent value="demanda" className="pt-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Dato label="OT" value={caso.ot} />
             <Dato label="Cliente" value={dash(caso.nombreContacto)} />
@@ -77,6 +69,14 @@ export default async function CasoDetallePage({
             <Dato label="Fecha reclamo" value={dashDate(caso.fechaRecepcion)} />
             <Dato label="Estado de la denuncia" value={dash(caso.estadoFiscalia)} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="mp" className="pt-4">
+          <p className="text-sm text-muted-foreground">Próximamente.</p>
+        </TabsContent>
+
+        <TabsContent value="demanda" className="pt-4">
+          <p className="text-sm text-muted-foreground">Próximamente.</p>
         </TabsContent>
       </Tabs>
     </div>

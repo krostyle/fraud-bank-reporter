@@ -1,8 +1,10 @@
-# 010 - Vista de detalle de Caso (pestaña Demanda)
+# 010 - Vista de detalle de Caso (pestaña Datos del Caso)
 
 ## Contexto
 
-Hasta ahora solo existe el listado de Casos (dashboard). Se necesita una **vista de detalle por Caso**, organizada en pestañas por "etapa": **Datos del Caso**, **Medida Precautoria (MP)**, y **Demanda**. Estas pestañas son secciones de la misma pantalla de detalle, no dependen de ningún campo existente (`Caso: Tipo` es un dato de clasificación aparte, no decide qué pestaña se muestra) — se van a ir completando en specs futuros. Este spec construye **solo el contenido de la pestaña Demanda**; las otras dos quedan como placeholder "Próximamente".
+Hasta ahora solo existe el listado de Casos (dashboard). Se necesita una **vista de detalle por Caso**, organizada en pestañas por "etapa": **Datos del Caso**, **Medida Precautoria (MP)**, y **Demanda**. Estas pestañas son secciones de la misma pantalla de detalle, no dependen de ningún campo existente (`Caso: Tipo` es un dato de clasificación aparte, no decide qué pestaña se muestra) — se van a ir completando en specs futuros.
+
+**Corrección (post-implementación):** los 7 datos de abajo se definieron originalmente pensando que iban en la pestaña **Demanda**, pero en realidad corresponden a la pestaña **Datos del Caso** — son datos generales del Caso, no específicos de una demanda. Este spec construye **solo el contenido de la pestaña Datos del Caso**; **Medida Precautoria (MP)** y **Demanda** quedan como placeholder "Próximamente" para specs futuros.
 
 Mapeos de campos confirmados para esta pestaña (todos ya existen en el modelo `Caso`, no se agrega nada al schema):
 
@@ -22,19 +24,19 @@ Mapeos de campos confirmados para esta pestaña (todos ya existen en el modelo `
 2. La OT en la tabla del dashboard principal (`/`) pasa a ser un link a `/casos/[ot]`.
 3. La pantalla de detalle tiene:
    - Encabezado simple con la OT y el nombre del contacto, y un link para volver al listado.
-   - **3 pestañas**: "Datos del Caso", "Medida Precautoria (MP)", "Demanda". Las primeras dos muestran un placeholder ("Próximamente"). La pestaña activa por defecto es **Demanda** (es la única con contenido en este spec).
-   - Pestaña **Demanda**: muestra OT, Cliente, RUT, Localidad, Monto reclamado (formateado como CLP), Fecha reclamo (formateada), y Estado de la denuncia — con guion (`—`) para cualquiera que venga `null`.
+   - **3 pestañas**: "Datos del Caso", "Medida Precautoria (MP)", "Demanda". Las últimas dos muestran un placeholder ("Próximamente"). La pestaña activa por defecto es **Datos del Caso** (es la única con contenido en este spec).
+   - Pestaña **Datos del Caso**: muestra OT, Cliente, RUT, Localidad, Monto reclamado (formateado como CLP), Fecha reclamo (formateada), y Estado de la denuncia — con guion (`—`) para cualquiera que venga `null`.
 
 **Fuera de alcance:**
-- Contenido real de las pestañas "Datos del Caso" y "Medida Precautoria (MP)" (specs futuros).
+- Contenido real de las pestañas "Medida Precautoria (MP)" y "Demanda" (specs futuros).
 - Editar datos desde esta pantalla — es solo lectura.
 - Separar la Localidad en Región/Comuna/Localidad propia — sigue fuera de alcance general.
 - Cualquier otro dato del Caso que no esté en la tabla de mapeos de arriba (aunque exista en el modelo).
 
 ## Criterios de aceptación
 
-- [x] Entrar a `/casos/<OT válida>` muestra la pantalla de detalle con la pestaña Demanda activa por defecto y los 7 datos mapeados arriba, correctos. Verificado visualmente contra un Caso real.
+- [x] Entrar a `/casos/<OT válida>` muestra la pantalla de detalle con la pestaña Datos del Caso activa por defecto y los 7 datos mapeados arriba, correctos. Verificado visualmente contra un Caso real.
 - [x] Entrar a `/casos/<OT inexistente>` devuelve 404. Verificado visualmente.
-- [x] Las pestañas "Datos del Caso" y "Medida Precautoria (MP)" existen y muestran un placeholder, sin romper nada al hacer clic en ellas. Verificado visualmente.
+- [x] Las pestañas "Medida Precautoria (MP)" y "Demanda" existen y muestran un placeholder, sin romper nada al hacer clic en ellas. Verificado visualmente.
 - [x] La OT de cada fila en la tabla del dashboard (`/`) es un link que lleva a `/casos/<esa OT>`.
 - [x] `npm run build` y `npm run lint` pasan sin errores (no aplica TDD, es UI/dashboard de solo lectura).
