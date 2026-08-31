@@ -16,12 +16,12 @@ export default async function AppLayout({
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex justify-end gap-2 border-b bg-muted/30 px-6 py-2">
           <ImportDenunciasDialog />
           <ImportDialog />
         </div>
-        <main className="flex flex-1 flex-col">{children}</main>
+        <main className="flex min-w-0 flex-1 flex-col">{children}</main>
       </div>
     </div>
   );

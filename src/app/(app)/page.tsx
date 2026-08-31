@@ -68,7 +68,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
+    <div className="flex min-w-0 flex-1 flex-col gap-6 p-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader>
