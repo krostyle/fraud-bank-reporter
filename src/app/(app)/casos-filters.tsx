@@ -70,14 +70,12 @@ function StringFilterSelect({
 export function CasosFilters({
   estadosDisponibles,
   subStatusesDisponibles,
-  propietariosDisponibles,
   abogadosDisponibles,
   regionesDisponibles,
   comunasDisponibles,
 }: {
   estadosDisponibles: string[];
   subStatusesDisponibles: string[];
-  propietariosDisponibles: string[];
   abogadosDisponibles: string[];
   regionesDisponibles: Region[];
   comunasDisponibles: Comuna[];
@@ -195,15 +193,6 @@ export function CasosFilters({
         options={subStatusesDisponibles}
         value={searchParams.get("subStatus") ?? TODOS}
         navigate={navigate}
-      />
-
-      <StringFilterSelect
-        label="Propietario"
-        paramKey="propietario"
-        options={propietariosDisponibles}
-        value={searchParams.get("propietario") ?? TODOS}
-        navigate={navigate}
-        className="w-56"
       />
 
       <StringFilterSelect

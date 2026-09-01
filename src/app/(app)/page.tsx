@@ -44,7 +44,6 @@ export default async function Home({ searchParams }: PageProps<"/">) {
     q: unwrap(params.q),
     estado: unwrap(params.estado),
     subStatus: unwrap(params.subStatus),
-    propietario: unwrap(params.propietario),
     abogado: unwrap(params.abogado),
     regionId: unwrap(params.regionId),
     comunaId: unwrap(params.comunaId),
@@ -117,7 +116,6 @@ export default async function Home({ searchParams }: PageProps<"/">) {
       <CasosFilters
         estadosDisponibles={dashboard.estadosDisponibles}
         subStatusesDisponibles={dashboard.subStatusesDisponibles}
-        propietariosDisponibles={dashboard.propietariosDisponibles}
         abogadosDisponibles={dashboard.abogadosDisponibles}
         regionesDisponibles={dashboard.regionesDisponibles}
         comunasDisponibles={dashboard.comunasDisponibles}

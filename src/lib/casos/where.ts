@@ -5,7 +5,6 @@ export type CasoContentFilters = {
   q?: string;
   estado?: string;
   subStatus?: string;
-  propietario?: string;
   abogado?: string;
   regionId?: string;
   comunaId?: string;
@@ -33,10 +32,6 @@ export function buildCasoWhere(filters: CasoContentFilters): Prisma.CasoWhereInp
     where.subStatus = filters.subStatus;
   }
 
-  if (filters.propietario) {
-    where.propietarioCaso = filters.propietario;
-  }
-
   if (filters.abogado) {
     where.abogadoAsignado = filters.abogado;
   }
@@ -55,7 +50,7 @@ export function buildCasoWhere(filters: CasoContentFilters): Prisma.CasoWhereInp
 // Opciones disponibles para los selects de filtro — compartidas entre el
 // dashboard principal y la página de Estadísticas.
 export async function getOpcionesFiltro() {
-  const [estadosRows, subStatusesRows, propietariosRows, abogadosRows, regionesDisponibles, comunasDisponibles] =
+  const [estadosRows, subStatusesRows, abogadosRows, regionesDisponibles, comunasDisponibles] =
     await Promise.all([
       prisma.caso.findMany({
         distinct: ["estadoAccionLegal"],
@@ -68,12 +63,6 @@ export async function getOpcionesFiltro() {
         select: { subStatus: true },
         where: { subStatus: { not: null } },
         orderBy: { subStatus: "asc" },
-      }),
-      prisma.caso.findMany({
-        distinct: ["propietarioCaso"],
-        select: { propietarioCaso: true },
-        where: { propietarioCaso: { not: null } },
-        orderBy: { propietarioCaso: "asc" },
       }),
       prisma.caso.findMany({
         distinct: ["abogadoAsignado"],
@@ -94,7 +83,6 @@ export async function getOpcionesFiltro() {
   return {
     estadosDisponibles: estadosRows.map((row) => row.estadoAccionLegal as string),
     subStatusesDisponibles: subStatusesRows.map((row) => row.subStatus as string),
-    propietariosDisponibles: propietariosRows.map((row) => row.propietarioCaso as string),
     abogadosDisponibles: abogadosRows.map((row) => row.abogadoAsignado as string),
     regionesDisponibles,
     comunasDisponibles,

@@ -35,7 +35,6 @@ export default async function EstadisticasPage({
     q: unwrap(params.q),
     estado: unwrap(params.estado),
     subStatus: unwrap(params.subStatus),
-    propietario: unwrap(params.propietario),
     abogado: unwrap(params.abogado),
     regionId: unwrap(params.regionId),
     comunaId: unwrap(params.comunaId),
@@ -54,7 +53,6 @@ export default async function EstadisticasPage({
         <CasosFilters
           estadosDisponibles={opcionesFiltro.estadosDisponibles}
           subStatusesDisponibles={opcionesFiltro.subStatusesDisponibles}
-          propietariosDisponibles={opcionesFiltro.propietariosDisponibles}
           abogadosDisponibles={opcionesFiltro.abogadosDisponibles}
           regionesDisponibles={opcionesFiltro.regionesDisponibles}
           comunasDisponibles={opcionesFiltro.comunasDisponibles}

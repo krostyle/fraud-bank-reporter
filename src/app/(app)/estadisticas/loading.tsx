@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const FILTER_COUNT = 8;
+const FILTER_COUNT = 7;
 const CHART_COUNT = 6;
 
 export default function Loading() {

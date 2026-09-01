@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const FILTER_COUNT = 7;
+const FILTER_COUNT = 6;
 const COLUMN_COUNT = 6;
 const ROW_COUNT = 10;
 
